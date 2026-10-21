@@ -7,15 +7,20 @@ import {
   Vibration,
   Platform,
   Alert,
+  Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../constants/theme';
 
 export default function CookingTimer({ initialMinutes = 0, onTimerDone }) {
-  const [totalSeconds, setTotalSeconds] = useState(initialMinutes > 0 ? initialMinutes * 60 : 300); // 5 min default
+  const [totalSeconds, setTotalSeconds] = useState(initialMinutes > 0 ? initialMinutes * 60 : 300);
   const [remaining, setRemaining] = useState(initialMinutes > 0 ? initialMinutes * 60 : 300);
   const [isRunning, setIsRunning] = useState(false);
   const intervalRef = useRef(null);
+
+  // Pulse animation for active timer
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+  const pulseLoop = useRef(null);
 
   useEffect(() => {
     if (initialMinutes > 0) {
@@ -27,6 +32,23 @@ export default function CookingTimer({ initialMinutes = 0, onTimerDone }) {
 
   useEffect(() => {
     if (isRunning) {
+      // Start pulsing animation loop
+      pulseLoop.current = Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseAnim, {
+            toValue: 1.04,
+            duration: 800,
+            useNativeDriver: true,
+          }),
+          Animated.timing(pulseAnim, {
+            toValue: 1,
+            duration: 800,
+            useNativeDriver: true,
+          }),
+        ])
+      );
+      pulseLoop.current.start();
+
       intervalRef.current = setInterval(() => {
         setRemaining((prev) => {
           if (prev <= 1) {
@@ -40,23 +62,27 @@ export default function CookingTimer({ initialMinutes = 0, onTimerDone }) {
       }, 1000);
     } else {
       if (intervalRef.current) clearInterval(intervalRef.current);
+      if (pulseLoop.current) pulseLoop.current.stop();
+      pulseAnim.setValue(1);
     }
+
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
+      if (pulseLoop.current) pulseLoop.current.stop();
     };
   }, [isRunning]);
 
   const handleFinished = () => {
     try {
       if (Platform.OS !== 'web') {
-        Vibration.vibrate([500, 500, 500, 500]);
+        Vibration.vibrate([600, 400, 600, 400]);
       }
     } catch (e) {}
 
     Alert.alert(
       '⏰ Minuteur terminé !',
-      'Votre temps de cuisson est écoulé. Bon appétit !',
-      [{ text: 'Super !', onPress: () => onTimerDone && onTimerDone() }]
+      'Votre temps de cuisson est écoulé. Votre plat est prêt !',
+      [{ text: 'Parfait !', onPress: () => onTimerDone && onTimerDone() }]
     );
   };
 
@@ -93,22 +119,49 @@ export default function CookingTimer({ initialMinutes = 0, onTimerDone }) {
     return `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
   };
 
-  const progress = totalSeconds > 0 ? (remaining / totalSeconds) : 0;
+  const progress = totalSeconds > 0 ? remaining / totalSeconds : 0;
 
   return (
     <View style={styles.card}>
       <View style={styles.headerRow}>
-        <Ionicons name="timer" size={24} color={COLORS.primary} />
-        <Text style={styles.cardTitle}>Minuteur de Cuisine</Text>
+        <View style={styles.iconBadge}>
+          <Ionicons name="timer" size={20} color={COLORS.textLight} />
+        </View>
+        <View>
+          <Text style={styles.cardTitle}>Minuteur de Cuisson</Text>
+          <Text style={styles.cardSub}>
+            {isRunning ? 'Cuisson en cours...' : 'Prêt à démarrer'}
+          </Text>
+        </View>
+        {isRunning && (
+          <View style={styles.liveBadge}>
+            <View style={styles.liveDot} />
+            <Text style={styles.liveText}>ACTIF</Text>
+          </View>
+        )}
       </View>
 
-      {/* Big Display */}
-      <View style={styles.timerDisplayContainer}>
-        <Text style={styles.timerText}>{formatTime(remaining)}</Text>
-        
-        {/* Progress bar */}
+      {/* Animated Big Display */}
+      <Animated.View
+        style={[
+          styles.timerDisplayContainer,
+          isRunning && styles.timerDisplayRunning,
+          { transform: [{ scale: pulseAnim }] },
+        ]}
+      >
+        <Text style={[styles.timerText, isRunning && styles.timerTextRunning]}>
+          {formatTime(remaining)}
+        </Text>
+
+        {/* Dynamic Progress Bar */}
         <View style={styles.progressBarTrack}>
-          <View style={[styles.progressBarFill, { width: `${progress * 100}%` }]} />
+          <View
+            style={[
+              styles.progressBarFill,
+              { width: `${progress * 100}%` },
+              isRunning && styles.progressBarFillActive,
+            ]}
+          />
         </View>
 
         {/* Adjust buttons */}
@@ -142,14 +195,14 @@ export default function CookingTimer({ initialMinutes = 0, onTimerDone }) {
             <Text style={styles.adjustBtnText}>+1 min</Text>
           </TouchableOpacity>
         </View>
-      </View>
+      </Animated.View>
 
       {/* Main Controls */}
       <View style={styles.controlsRow}>
         <TouchableOpacity
           style={[styles.mainBtn, isRunning ? styles.pauseBtn : styles.startBtn]}
           onPress={toggleRun}
-          activeOpacity={0.8}
+          activeOpacity={0.85}
         >
           <Ionicons
             name={isRunning ? 'pause' : 'play'}
@@ -157,7 +210,7 @@ export default function CookingTimer({ initialMinutes = 0, onTimerDone }) {
             color={COLORS.textLight}
           />
           <Text style={styles.mainBtnText}>
-            {isRunning ? 'Pause' : remaining === 0 ? 'Relancer' : 'Démarrer'}
+            {isRunning ? 'Pause' : remaining === 0 ? 'Relancer' : 'Démarrer le chrono'}
           </Text>
         </TouchableOpacity>
 
@@ -166,41 +219,42 @@ export default function CookingTimer({ initialMinutes = 0, onTimerDone }) {
           onPress={resetTimer}
           activeOpacity={0.7}
         >
-          <Ionicons name="refresh" size={20} color={COLORS.textSecondary} />
-          <Text style={styles.resetBtnText}>Réinitialiser</Text>
+          <Ionicons name="refresh" size={20} color={COLORS.primaryMedium} />
+          <Text style={styles.resetBtnText}>Remise à zéro</Text>
         </TouchableOpacity>
       </View>
 
       {/* Quick Presets */}
       <View style={styles.presetsContainer}>
-        <Text style={styles.presetsTitle}>Préréglages rapides :</Text>
+        <Text style={styles.presetsTitle}>Préréglages culinaires rapides :</Text>
         <View style={styles.presetsRow}>
           {[
-            { label: '3 min (Œuf)', min: 3 },
-            { label: '5 min', min: 5 },
-            { label: '10 min (Pâtes)', min: 10 },
-            { label: '15 min', min: 15 },
-            { label: '30 min', min: 30 },
-            { label: '45 min', min: 45 },
-          ].map((preset) => (
-            <TouchableOpacity
-              key={preset.min}
-              style={[
-                styles.presetChip,
-                totalSeconds === preset.min * 60 && styles.presetChipActive,
-              ]}
-              onPress={() => setPreset(preset.min)}
-            >
-              <Text
-                style={[
-                  styles.presetChipText,
-                  totalSeconds === preset.min * 60 && styles.presetChipTextActive,
-                ]}
+            { label: '3 min • Œuf coque', min: 3 },
+            { label: '5 min • Œuf mollet', min: 5 },
+            { label: '10 min • Pâtes', min: 10 },
+            { label: '15 min • Vapeur', min: 15 },
+            { label: '25 min • Gâteau', min: 25 },
+            { label: '45 min • Four', min: 45 },
+          ].map((preset) => {
+            const isPresetActive = totalSeconds === preset.min * 60;
+            return (
+              <TouchableOpacity
+                key={preset.min}
+                style={[styles.presetChip, isPresetActive && styles.presetChipActive]}
+                onPress={() => setPreset(preset.min)}
+                activeOpacity={0.8}
               >
-                {preset.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
+                <Text
+                  style={[
+                    styles.presetChipText,
+                    isPresetActive && styles.presetChipTextActive,
+                  ]}
+                >
+                  {preset.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
         </View>
       </View>
     </View>
@@ -210,43 +264,87 @@ export default function CookingTimer({ initialMinutes = 0, onTimerDone }) {
 const styles = StyleSheet.create({
   card: {
     backgroundColor: COLORS.surface,
-    borderRadius: 20,
-    padding: 18,
+    borderRadius: 24,
+    padding: 20,
     margin: 16,
     borderWidth: 1,
     borderColor: COLORS.borderLight,
-    elevation: 3,
-    shadowColor: COLORS.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
+    elevation: 4,
+    shadowColor: COLORS.primaryDark,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.09,
+    shadowRadius: 12,
   },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    marginBottom: 14,
+    gap: 12,
+    marginBottom: 16,
+  },
+  iconBadge: {
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    backgroundColor: COLORS.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   cardTitle: {
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: '800',
     color: COLORS.text,
+  },
+  cardSub: {
+    fontSize: 12,
+    color: COLORS.textSecondary,
+    fontWeight: '500',
+  },
+  liveBadge: {
+    marginLeft: 'auto',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: COLORS.primaryLight,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 10,
+  },
+  liveDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
+    backgroundColor: COLORS.mint,
+  },
+  liveText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: COLORS.primary,
+    letterSpacing: 0.5,
   },
   timerDisplayContainer: {
     backgroundColor: COLORS.surfaceVariant,
-    borderRadius: 16,
-    paddingVertical: 20,
+    borderRadius: 20,
+    paddingVertical: 24,
     paddingHorizontal: 16,
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 18,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  timerDisplayRunning: {
+    backgroundColor: COLORS.primaryLight,
+    borderColor: COLORS.mint,
   },
   timerText: {
-    fontSize: 52,
-    fontWeight: '800',
-    color: COLORS.text,
+    fontSize: 54,
+    fontWeight: '900',
+    color: COLORS.primaryDark,
     letterSpacing: 2,
     fontVariant: ['tabular-nums'],
-    marginBottom: 10,
+    marginBottom: 12,
+  },
+  timerTextRunning: {
+    color: COLORS.primary,
   },
   progressBarTrack: {
     width: '100%',
@@ -254,12 +352,15 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.border,
     borderRadius: 4,
     overflow: 'hidden',
-    marginBottom: 14,
+    marginBottom: 16,
   },
   progressBarFill: {
     height: '100%',
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.primaryMedium,
     borderRadius: 4,
+  },
+  progressBarFillActive: {
+    backgroundColor: COLORS.mint,
   },
   adjustRow: {
     flexDirection: 'row',
@@ -267,87 +368,92 @@ const styles = StyleSheet.create({
   },
   adjustBtn: {
     backgroundColor: COLORS.surface,
-    paddingVertical: 5,
-    paddingHorizontal: 10,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: COLORS.border,
   },
   adjustBtnText: {
     fontSize: 12,
-    fontWeight: '600',
-    color: COLORS.textSecondary,
+    fontWeight: '700',
+    color: COLORS.primaryMedium,
   },
   controlsRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    marginBottom: 16,
+    marginBottom: 18,
   },
   mainBtn: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 14,
-    borderRadius: 14,
+    paddingVertical: 15,
+    borderRadius: 16,
     gap: 8,
+    elevation: 3,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
   },
   startBtn: {
     backgroundColor: COLORS.primary,
   },
   pauseBtn: {
-    backgroundColor: COLORS.warning,
+    backgroundColor: COLORS.accent,
   },
   mainBtnText: {
     color: COLORS.textLight,
-    fontSize: 16,
-    fontWeight: '700',
+    fontSize: 15,
+    fontWeight: '800',
   },
   resetBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 14,
+    paddingVertical: 15,
     paddingHorizontal: 16,
-    borderRadius: 14,
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: COLORS.border,
     backgroundColor: COLORS.surface,
     gap: 6,
   },
   resetBtnText: {
-    color: COLORS.textSecondary,
-    fontSize: 14,
-    fontWeight: '600',
+    color: COLORS.primaryMedium,
+    fontSize: 13,
+    fontWeight: '700',
   },
   presetsContainer: {
     borderTopWidth: 1,
     borderTopColor: COLORS.borderLight,
-    paddingTop: 12,
+    paddingTop: 14,
   },
   presetsTitle: {
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: '700',
     color: COLORS.textSecondary,
-    marginBottom: 8,
+    marginBottom: 10,
   },
   presetsRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 6,
+    gap: 8,
   },
   presetChip: {
     backgroundColor: COLORS.surfaceVariant,
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    borderRadius: 12,
+    paddingVertical: 7,
+    paddingHorizontal: 12,
+    borderRadius: 14,
     borderWidth: 1,
     borderColor: 'transparent',
   },
   presetChipActive: {
-    backgroundColor: COLORS.primaryLight,
-    borderColor: COLORS.primary,
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primaryDark,
   },
   presetChipText: {
     fontSize: 12,
@@ -355,6 +461,7 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
   },
   presetChipTextActive: {
-    color: COLORS.primary,
+    color: COLORS.textLight,
+    fontWeight: '700',
   },
 });

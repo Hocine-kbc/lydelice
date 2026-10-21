@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   StyleSheet,
   View,
@@ -10,6 +10,7 @@ import {
   Alert,
   ActivityIndicator,
   Platform,
+  Animated,
 } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
@@ -22,6 +23,58 @@ import RecipeDetailModal from './src/components/RecipeDetailModal';
 import RecipeFormModal from './src/components/RecipeFormModal';
 import CookingTimer from './src/components/CookingTimer';
 import ShoppingListTab from './src/components/ShoppingListTab';
+
+function AnimatedTabButton({ active, label, iconFilled, iconOutline, badgeCount, badgeColor, onPress }) {
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+
+  const handlePress = () => {
+    Animated.sequence([
+      Animated.timing(scaleAnim, {
+        toValue: 0.88,
+        duration: 80,
+        useNativeDriver: true,
+      }),
+      Animated.spring(scaleAnim, {
+        toValue: 1,
+        friction: 4,
+        tension: 80,
+        useNativeDriver: true,
+      }),
+    ]).start();
+    onPress();
+  };
+
+  return (
+    <TouchableOpacity
+      style={styles.tabButton}
+      onPress={handlePress}
+      activeOpacity={0.8}
+    >
+      <Animated.View style={[styles.tabContent, { transform: [{ scale: scaleAnim }] }]}>
+        <View style={active ? styles.activeTabIconPill : null}>
+          <Ionicons
+            name={active ? iconFilled : iconOutline}
+            size={22}
+            color={active ? COLORS.primary : COLORS.textMuted}
+          />
+          {badgeCount > 0 && (
+            <View
+              style={[
+                styles.tabBadge,
+                badgeColor ? { backgroundColor: badgeColor } : null,
+              ]}
+            >
+              <Text style={styles.tabBadgeText}>{badgeCount}</Text>
+            </View>
+          )}
+        </View>
+        <Text style={[styles.tabLabel, active && styles.tabLabelActive]}>
+          {label}
+        </Text>
+      </Animated.View>
+    </TouchableOpacity>
+  );
+}
 
 export default function App() {
   const [recipes, setRecipes] = useState([]);
@@ -42,6 +95,9 @@ export default function App() {
 
   // Timer preloading
   const [timerInitialMinutes, setTimerInitialMinutes] = useState(0);
+
+  // Add Button Animation
+  const addBtnScale = useRef(new Animated.Value(1)).current;
 
   // Load initial data
   useEffect(() => {
@@ -140,7 +196,7 @@ export default function App() {
       setShoppingList(res.items);
       Alert.alert(
         '🛒 Ingrédients ajoutés',
-        `${res.addedCount} ingrédient(s) ont été ajoutés à votre liste de courses !`,
+        `${res.addedCount} ingrédient(s) ajoutés à votre panier !`,
         [
           { text: 'Continuer' },
           {
@@ -161,20 +217,34 @@ export default function App() {
     await StorageService.saveShoppingList(updated);
   };
 
+  const handleOpenAddForm = () => {
+    Animated.sequence([
+      Animated.timing(addBtnScale, {
+        toValue: 0.9,
+        duration: 80,
+        useNativeDriver: true,
+      }),
+      Animated.spring(addBtnScale, {
+        toValue: 1,
+        friction: 4,
+        tension: 80,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
+    setRecipeToEdit(null);
+    setIsFormVisible(true);
+  };
+
   // Filtered recipes
   const filteredRecipes = useMemo(() => {
     return recipes.filter((r) => {
-      // Tab check for favorites
       if (currentTab === 'favorites' && !r.isFavorite) {
         return false;
       }
-
-      // Category check
       if (selectedCategory !== 'all' && r.category !== selectedCategory) {
         return false;
       }
-
-      // Search query check
       if (searchQuery.trim().length > 0) {
         const query = searchQuery.toLowerCase();
         const matchesTitle = r.title && r.title.toLowerCase().includes(query);
@@ -186,7 +256,6 @@ export default function App() {
           );
         return matchesTitle || matchesCategory || matchesIngredient;
       }
-
       return true;
     });
   }, [recipes, currentTab, selectedCategory, searchQuery]);
@@ -198,36 +267,35 @@ export default function App() {
       <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
         <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
 
-        {/* TOP BAR */}
+        {/* TOP BAR - Vert Sapin Gourmet */}
         <View style={styles.topHeader}>
           <View style={styles.brandingRow}>
             <View style={styles.logoBadge}>
-              <MaterialCommunityIcons name="chef-hat" size={24} color={COLORS.textLight} />
+              <MaterialCommunityIcons name="leaf" size={20} color={COLORS.mint} />
             </View>
             <View>
               <Text style={styles.brandTitle}>LyDélice</Text>
-              <Text style={styles.brandSubtitle}>Mon carnet de recettes gourmandes</Text>
+              <Text style={styles.brandSubtitle}>Cuisine saine & gourmande</Text>
             </View>
           </View>
 
-          <TouchableOpacity
-            style={styles.newRecipeBtn}
-            onPress={() => {
-              setRecipeToEdit(null);
-              setIsFormVisible(true);
-            }}
-            activeOpacity={0.8}
-          >
-            <Ionicons name="add" size={20} color={COLORS.textLight} />
-            <Text style={styles.newRecipeBtnText}>Recette</Text>
-          </TouchableOpacity>
+          <Animated.View style={{ transform: [{ scale: addBtnScale }] }}>
+            <TouchableOpacity
+              style={styles.newRecipeBtn}
+              onPress={handleOpenAddForm}
+              activeOpacity={0.85}
+            >
+              <Ionicons name="add" size={20} color={COLORS.textLight} />
+              <Text style={styles.newRecipeBtnText}>Recette</Text>
+            </TouchableOpacity>
+          </Animated.View>
         </View>
 
         {/* MAIN BODY PER TAB */}
         {loading ? (
           <View style={styles.centerContainer}>
             <ActivityIndicator size="large" color={COLORS.primary} />
-            <Text style={styles.loadingText}>Chargement de vos délices...</Text>
+            <Text style={styles.loadingText}>Préparation de vos recettes...</Text>
           </View>
         ) : currentTab === 'timer' ? (
           <View style={styles.flexOne}>
@@ -251,7 +319,7 @@ export default function App() {
             {/* Search Input */}
             <View style={styles.searchWrapper}>
               <View style={styles.searchBar}>
-                <Ionicons name="search" size={18} color={COLORS.textSecondary} />
+                <Ionicons name="search" size={19} color={COLORS.primaryMedium} />
                 <TextInput
                   style={styles.searchInput}
                   placeholder="Rechercher une recette, un ingrédient..."
@@ -262,13 +330,13 @@ export default function App() {
                 />
                 {searchQuery.length > 0 && (
                   <TouchableOpacity onPress={() => setSearchQuery('')}>
-                    <Ionicons name="close-circle" size={18} color={COLORS.textSecondary} />
+                    <Ionicons name="close-circle" size={18} color={COLORS.textMuted} />
                   </TouchableOpacity>
                 )}
               </View>
             </View>
 
-            {/* Category Pills */}
+            {/* Category Pills with animated touches */}
             <CategoryPills
               selectedCategory={selectedCategory}
               onSelectCategory={setSelectedCategory}
@@ -282,15 +350,17 @@ export default function App() {
               showsVerticalScrollIndicator={false}
               ListEmptyComponent={
                 <View style={styles.emptyContainer}>
-                  <MaterialCommunityIcons
-                    name={
-                      currentTab === 'favorites'
-                        ? 'heart-broken-outline'
-                        : 'book-open-page-variant'
-                    }
-                    size={64}
-                    color={COLORS.textMuted}
-                  />
+                  <View style={styles.emptyIconBadge}>
+                    <MaterialCommunityIcons
+                      name={
+                        currentTab === 'favorites'
+                          ? 'heart-outline'
+                          : 'book-open-variant'
+                      }
+                      size={54}
+                      color={COLORS.primaryMedium}
+                    />
+                  </View>
                   <Text style={styles.emptyTitle}>
                     {currentTab === 'favorites'
                       ? 'Aucun favori pour le moment'
@@ -298,19 +368,17 @@ export default function App() {
                   </Text>
                   <Text style={styles.emptySubtitle}>
                     {currentTab === 'favorites'
-                      ? 'Touchez le petit cœur sur vos recettes préférées pour les retrouver facilement ici !'
-                      : 'Créez votre première recette en touchant le bouton "+ Recette" en haut.'}
+                      ? 'Appuyez sur le petit cœur pour épingler vos recettes préférées !'
+                      : 'Créez votre première recette en appuyant sur "+ Recette" en haut.'}
                   </Text>
                   {currentTab !== 'favorites' && (
                     <TouchableOpacity
                       style={styles.emptyAddBtn}
-                      onPress={() => {
-                        setRecipeToEdit(null);
-                        setIsFormVisible(true);
-                      }}
+                      onPress={handleOpenAddForm}
+                      activeOpacity={0.85}
                     >
-                      <Ionicons name="add-circle-outline" size={20} color={COLORS.textLight} />
-                      <Text style={styles.emptyAddBtnText}>Ajouter ma première recette</Text>
+                      <Ionicons name="add-circle" size={20} color={COLORS.textLight} />
+                      <Text style={styles.emptyAddBtnText}>Créer une recette</Text>
                     </TouchableOpacity>
                   )}
                 </View>
@@ -326,97 +394,43 @@ export default function App() {
           </View>
         )}
 
-        {/* BOTTOM TAB BAR */}
+        {/* ANIMATED BOTTOM TAB BAR */}
         <View style={styles.bottomTabBar}>
-          <TouchableOpacity
-            style={[styles.tabButton, currentTab === 'recipes' && styles.tabButtonActive]}
+          <AnimatedTabButton
+            active={currentTab === 'recipes'}
+            label="Recettes"
+            iconFilled="restaurant"
+            iconOutline="restaurant-outline"
             onPress={() => setCurrentTab('recipes')}
-          >
-            <Ionicons
-              name={currentTab === 'recipes' ? 'restaurant' : 'restaurant-outline'}
-              size={22}
-              color={currentTab === 'recipes' ? COLORS.primary : COLORS.textSecondary}
-            />
-            <Text
-              style={[
-                styles.tabLabel,
-                currentTab === 'recipes' && styles.tabLabelActive,
-              ]}
-            >
-              Recettes
-            </Text>
-          </TouchableOpacity>
+          />
 
-          <TouchableOpacity
-            style={[styles.tabButton, currentTab === 'favorites' && styles.tabButtonActive]}
+          <AnimatedTabButton
+            active={currentTab === 'favorites'}
+            label="Favoris"
+            iconFilled="heart"
+            iconOutline="heart-outline"
+            badgeCount={favoritesCount}
+            badgeColor={COLORS.danger}
             onPress={() => setCurrentTab('favorites')}
-          >
-            <View>
-              <Ionicons
-                name={currentTab === 'favorites' ? 'heart' : 'heart-outline'}
-                size={22}
-                color={currentTab === 'favorites' ? COLORS.danger : COLORS.textSecondary}
-              />
-              {favoritesCount > 0 && (
-                <View style={styles.tabBadge}>
-                  <Text style={styles.tabBadgeText}>{favoritesCount}</Text>
-                </View>
-              )}
-            </View>
-            <Text
-              style={[
-                styles.tabLabel,
-                currentTab === 'favorites' && styles.tabLabelActive,
-              ]}
-            >
-              Favoris
-            </Text>
-          </TouchableOpacity>
+          />
 
-          <TouchableOpacity
-            style={[styles.tabButton, currentTab === 'timer' && styles.tabButtonActive]}
+          <AnimatedTabButton
+            active={currentTab === 'timer'}
+            label="Minuteur"
+            iconFilled="timer"
+            iconOutline="timer-outline"
             onPress={() => setCurrentTab('timer')}
-          >
-            <Ionicons
-              name={currentTab === 'timer' ? 'timer' : 'timer-outline'}
-              size={22}
-              color={currentTab === 'timer' ? COLORS.primary : COLORS.textSecondary}
-            />
-            <Text
-              style={[
-                styles.tabLabel,
-                currentTab === 'timer' && styles.tabLabelActive,
-              ]}
-            >
-              Minuteur
-            </Text>
-          </TouchableOpacity>
+          />
 
-          <TouchableOpacity
-            style={[styles.tabButton, currentTab === 'shopping' && styles.tabButtonActive]}
+          <AnimatedTabButton
+            active={currentTab === 'shopping'}
+            label="Courses"
+            iconFilled="cart"
+            iconOutline="cart-outline"
+            badgeCount={shoppingList.length}
+            badgeColor={COLORS.mint}
             onPress={() => setCurrentTab('shopping')}
-          >
-            <View>
-              <Ionicons
-                name={currentTab === 'shopping' ? 'cart' : 'cart-outline'}
-                size={22}
-                color={currentTab === 'shopping' ? COLORS.primary : COLORS.textSecondary}
-              />
-              {shoppingList.length > 0 && (
-                <View style={[styles.tabBadge, { backgroundColor: COLORS.secondary }]}>
-                  <Text style={styles.tabBadgeText}>{shoppingList.length}</Text>
-                </View>
-              )}
-            </View>
-            <Text
-              style={[
-                styles.tabLabel,
-                currentTab === 'shopping' && styles.tabLabelActive,
-              ]}
-            >
-              Courses
-            </Text>
-          </TouchableOpacity>
+          />
         </View>
 
         {/* MODALS */}
@@ -470,62 +484,63 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 12,
     fontSize: 14,
-    color: COLORS.textSecondary,
-    fontWeight: '500',
+    color: COLORS.primaryMedium,
+    fontWeight: '600',
   },
   topHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
+    paddingHorizontal: 18,
     paddingVertical: 12,
     backgroundColor: COLORS.background,
   },
   brandingRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 12,
   },
   logoBadge: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
+    width: 42,
+    height: 42,
+    borderRadius: 14,
     backgroundColor: COLORS.primary,
     justifyContent: 'center',
     alignItems: 'center',
-    elevation: 2,
-    shadowColor: COLORS.primary,
+    elevation: 3,
+    shadowColor: COLORS.primaryDark,
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 3,
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
   },
   brandTitle: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: COLORS.text,
-    letterSpacing: -0.5,
+    fontSize: 22,
+    fontWeight: '900',
+    color: COLORS.primaryDark,
+    letterSpacing: -0.6,
   },
   brandSubtitle: {
     fontSize: 11,
-    color: COLORS.textSecondary,
+    color: COLORS.primaryMedium,
+    fontWeight: '500',
   },
   newRecipeBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: COLORS.primary,
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    borderRadius: 14,
+    paddingVertical: 9,
+    paddingHorizontal: 15,
+    borderRadius: 16,
     gap: 4,
-    elevation: 2,
+    elevation: 3,
     shadowColor: COLORS.primary,
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.25,
     shadowRadius: 4,
   },
   newRecipeBtnText: {
     color: COLORS.textLight,
-    fontWeight: '700',
+    fontWeight: '800',
     fontSize: 13,
   },
   searchWrapper: {
@@ -538,10 +553,15 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.surface,
     paddingHorizontal: 14,
     paddingVertical: 10,
-    borderRadius: 16,
+    borderRadius: 18,
     borderWidth: 1,
     borderColor: COLORS.border,
-    gap: 8,
+    gap: 10,
+    shadowColor: COLORS.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.03,
+    shadowRadius: 4,
+    elevation: 1,
   },
   searchInput: {
     flex: 1,
@@ -555,14 +575,22 @@ const styles = StyleSheet.create({
   emptyContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 60,
+    paddingVertical: 50,
     paddingHorizontal: 32,
+  },
+  emptyIconBadge: {
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+    backgroundColor: COLORS.primaryLight,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
   },
   emptyTitle: {
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: '800',
     color: COLORS.text,
-    marginTop: 16,
     marginBottom: 6,
   },
   emptySubtitle: {
@@ -577,14 +605,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: COLORS.primary,
     paddingVertical: 12,
-    paddingHorizontal: 18,
-    borderRadius: 14,
+    paddingHorizontal: 20,
+    borderRadius: 16,
     gap: 8,
+    elevation: 2,
   },
   emptyAddBtnText: {
     color: COLORS.textLight,
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '800',
   },
   bottomTabBar: {
     flexDirection: 'row',
@@ -592,35 +621,43 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: COLORS.borderLight,
     paddingVertical: 8,
-    paddingBottom: Platform.OS === 'ios' ? 20 : 10,
+    paddingBottom: Platform.OS === 'ios' ? 22 : 10,
     justifyContent: 'space-around',
     elevation: 8,
-    shadowColor: COLORS.shadow,
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
+    shadowColor: COLORS.primaryDark,
+    shadowOffset: { width: 0, height: -3 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
   },
   tabButton: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 16,
+    paddingHorizontal: 14,
     paddingVertical: 4,
-    position: 'relative',
   },
-  tabButtonActive: {},
+  tabContent: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  activeTabIconPill: {
+    backgroundColor: COLORS.primaryLight,
+    paddingHorizontal: 14,
+    paddingVertical: 3,
+    borderRadius: 12,
+  },
   tabLabel: {
     fontSize: 11,
     fontWeight: '600',
-    color: COLORS.textSecondary,
+    color: COLORS.textMuted,
     marginTop: 3,
   },
   tabLabelActive: {
     color: COLORS.primary,
-    fontWeight: '700',
+    fontWeight: '800',
   },
   tabBadge: {
     position: 'absolute',
-    top: -4,
+    top: -5,
     right: -8,
     backgroundColor: COLORS.danger,
     minWidth: 18,
@@ -633,6 +670,6 @@ const styles = StyleSheet.create({
   tabBadgeText: {
     color: COLORS.textLight,
     fontSize: 10,
-    fontWeight: '700',
+    fontWeight: '800',
   },
 });

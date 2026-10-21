@@ -1,134 +1,189 @@
-import React from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useRef } from 'react';
+import { View, Text, Image, TouchableOpacity, StyleSheet, Animated } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { COLORS } from '../constants/theme';
 import StarRating from './StarRating';
 
 export default function RecipeCard({ recipe, onPress, onToggleFavorite }) {
+  const cardScale = useRef(new Animated.Value(1)).current;
+  const heartScale = useRef(new Animated.Value(1)).current;
+
   const totalTime = (recipe.prepTime || 0) + (recipe.cookTime || 0);
 
+  const handlePressIn = () => {
+    Animated.spring(cardScale, {
+      toValue: 0.97,
+      friction: 6,
+      tension: 100,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const handlePressOut = () => {
+    Animated.spring(cardScale, {
+      toValue: 1,
+      friction: 5,
+      tension: 80,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const handleFavoritePress = (e) => {
+    e.stopPropagation();
+
+    // Heart bounce animation
+    Animated.sequence([
+      Animated.timing(heartScale, {
+        toValue: 1.4,
+        duration: 120,
+        useNativeDriver: true,
+      }),
+      Animated.spring(heartScale, {
+        toValue: 1,
+        friction: 3,
+        tension: 90,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
+    onToggleFavorite(recipe.id);
+  };
+
   return (
-    <TouchableOpacity
-      style={styles.card}
-      onPress={onPress}
-      activeOpacity={0.85}
-    >
-      {/* Photo Container */}
-      <View style={styles.imageContainer}>
-        {recipe.photo ? (
-          <Image source={{ uri: recipe.photo }} style={styles.image} resizeMode="cover" />
-        ) : (
-          <View style={styles.placeholderImage}>
-            <MaterialCommunityIcons name="silverware-fork-knife" size={44} color={COLORS.accent} />
-          </View>
-        )}
+    <Animated.View style={[styles.cardWrapper, { transform: [{ scale: cardScale }] }]}>
+      <TouchableOpacity
+        style={styles.card}
+        onPress={onPress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        activeOpacity={0.92}
+      >
+        {/* Photo Container */}
+        <View style={styles.imageContainer}>
+          {recipe.photo ? (
+            <Image source={{ uri: recipe.photo }} style={styles.image} resizeMode="cover" />
+          ) : (
+            <View style={styles.placeholderImage}>
+              <MaterialCommunityIcons name="chef-hat" size={48} color={COLORS.mint} />
+            </View>
+          )}
 
-        {/* Category Badge */}
-        {recipe.category && (
-          <View style={styles.categoryBadge}>
-            <Text style={styles.categoryText}>{recipe.category}</Text>
-          </View>
-        )}
+          {/* Category Badge - Glassmorphism style */}
+          {recipe.category && (
+            <View style={styles.categoryBadge}>
+              <Text style={styles.categoryText}>{recipe.category}</Text>
+            </View>
+          )}
 
-        {/* Favorite Button */}
-        <TouchableOpacity
-          style={styles.favoriteBtn}
-          onPress={(e) => {
-            e.stopPropagation();
-            onToggleFavorite(recipe.id);
-          }}
-          activeOpacity={0.7}
-        >
-          <Ionicons
-            name={recipe.isFavorite ? 'heart' : 'heart-outline'}
-            size={20}
-            color={recipe.isFavorite ? COLORS.danger : COLORS.text}
-          />
-        </TouchableOpacity>
-      </View>
-
-      {/* Info Container */}
-      <View style={styles.content}>
-        <Text style={styles.title} numberOfLines={2}>
-          {recipe.title}
-        </Text>
-
-        {/* Rating Row */}
-        <View style={styles.ratingRow}>
-          <StarRating rating={recipe.rating || 0} size={15} showValue />
-          <Text style={styles.reviewsCount}>
-            ({(recipe.reviews && recipe.reviews.length) || 0})
-          </Text>
+          {/* Animated Favorite Button */}
+          <TouchableOpacity
+            style={styles.favoriteBtn}
+            onPress={handleFavoritePress}
+            activeOpacity={0.8}
+          >
+            <Animated.View style={{ transform: [{ scale: heartScale }] }}>
+              <Ionicons
+                name={recipe.isFavorite ? 'heart' : 'heart-outline'}
+                size={22}
+                color={recipe.isFavorite ? COLORS.danger : COLORS.primaryMedium}
+              />
+            </Animated.View>
+          </TouchableOpacity>
         </View>
 
-        {/* Meta badges row */}
-        <View style={styles.metaRow}>
-          <View style={styles.metaItem}>
-            <Ionicons name="time-outline" size={14} color={COLORS.textSecondary} />
-            <Text style={styles.metaText}>{totalTime > 0 ? `${totalTime} min` : '-'}</Text>
-          </View>
+        {/* Info Container */}
+        <View style={styles.content}>
+          <Text style={styles.title} numberOfLines={2}>
+            {recipe.title}
+          </Text>
 
-          <View style={styles.metaDivider} />
-
-          <View style={styles.metaItem}>
-            <Ionicons name="people-outline" size={14} color={COLORS.textSecondary} />
-            <Text style={styles.metaText}>{recipe.servings || 4} pers.</Text>
-          </View>
-
-          <View style={styles.metaDivider} />
-
-          <View style={styles.metaItem}>
-            <MaterialCommunityIcons
-              name="chef-hat"
-              size={14}
-              color={
-                recipe.difficulty === 'Difficile'
-                  ? COLORS.danger
-                  : recipe.difficulty === 'Moyen'
-                  ? COLORS.warning
-                  : COLORS.success
-              }
-            />
-            <Text
-              style={[
-                styles.metaText,
-                {
-                  color:
-                    recipe.difficulty === 'Difficile'
-                      ? COLORS.danger
-                      : recipe.difficulty === 'Moyen'
-                      ? COLORS.warning
-                      : COLORS.success,
-                  fontWeight: '600',
-                },
-              ]}
-            >
-              {recipe.difficulty || 'Facile'}
+          {/* Rating Row with animated stars */}
+          <View style={styles.ratingRow}>
+            <StarRating rating={recipe.rating || 0} size={16} showValue />
+            <Text style={styles.reviewsCount}>
+              ({(recipe.reviews && recipe.reviews.length) || 0} avis)
             </Text>
           </View>
+
+          {/* Meta badges row */}
+          <View style={styles.metaRow}>
+            <View style={styles.metaItem}>
+              <Ionicons name="timer-outline" size={15} color={COLORS.primaryMedium} />
+              <Text style={styles.metaText}>{totalTime > 0 ? `${totalTime} min` : 'Rapide'}</Text>
+            </View>
+
+            <View style={styles.metaDivider} />
+
+            <View style={styles.metaItem}>
+              <Ionicons name="people-outline" size={15} color={COLORS.primaryMedium} />
+              <Text style={styles.metaText}>{recipe.servings || 4} pers.</Text>
+            </View>
+
+            <View style={styles.metaDivider} />
+
+            <View
+              style={[
+                styles.difficultyBadge,
+                recipe.difficulty === 'Difficile'
+                  ? styles.diffDifficile
+                  : recipe.difficulty === 'Moyen'
+                  ? styles.diffMoyen
+                  : styles.diffFacile,
+              ]}
+            >
+              <MaterialCommunityIcons
+                name="chef-hat"
+                size={13}
+                color={
+                  recipe.difficulty === 'Difficile'
+                    ? COLORS.danger
+                    : recipe.difficulty === 'Moyen'
+                    ? COLORS.warning
+                    : COLORS.primaryMedium
+                }
+              />
+              <Text
+                style={[
+                  styles.difficultyText,
+                  {
+                    color:
+                      recipe.difficulty === 'Difficile'
+                        ? COLORS.danger
+                        : recipe.difficulty === 'Moyen'
+                        ? COLORS.warning
+                        : COLORS.primaryMedium,
+                  },
+                ]}
+              >
+                {recipe.difficulty || 'Facile'}
+              </Text>
+            </View>
+          </View>
         </View>
-      </View>
-    </TouchableOpacity>
+      </TouchableOpacity>
+    </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
+  cardWrapper: {
+    marginBottom: 16,
+  },
   card: {
     backgroundColor: COLORS.surface,
-    borderRadius: 18,
-    marginBottom: 16,
+    borderRadius: 22,
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: COLORS.borderLight,
     elevation: 3,
-    shadowColor: COLORS.shadow,
-    shadowOffset: { width: 0, height: 2 },
+    shadowColor: COLORS.primaryDark,
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.08,
-    shadowRadius: 8,
+    shadowRadius: 12,
   },
   imageContainer: {
     width: '100%',
-    height: 180,
+    height: 190,
     backgroundColor: COLORS.surfaceVariant,
     position: 'relative',
   },
@@ -145,76 +200,102 @@ const styles = StyleSheet.create({
   },
   categoryBadge: {
     position: 'absolute',
-    top: 12,
-    left: 12,
-    backgroundColor: 'rgba(28, 25, 23, 0.75)',
-    paddingVertical: 4,
-    paddingHorizontal: 10,
-    borderRadius: 12,
+    top: 14,
+    left: 14,
+    backgroundColor: 'rgba(27, 67, 50, 0.88)',
+    paddingVertical: 5,
+    paddingHorizontal: 12,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.25)',
   },
   categoryText: {
     color: COLORS.textLight,
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: '800',
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    letterSpacing: 0.6,
   },
   favoriteBtn: {
     position: 'absolute',
     top: 12,
     right: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.92)',
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     justifyContent: 'center',
     alignItems: 'center',
-    elevation: 2,
+    elevation: 3,
     shadowColor: COLORS.shadow,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
   },
   content: {
-    padding: 14,
+    padding: 16,
   },
   title: {
-    fontSize: 17,
-    fontWeight: '700',
+    fontSize: 18,
+    fontWeight: '800',
     color: COLORS.text,
-    lineHeight: 22,
-    marginBottom: 6,
+    lineHeight: 24,
+    marginBottom: 8,
   },
   ratingRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 12,
   },
   reviewsCount: {
     fontSize: 12,
     color: COLORS.textSecondary,
-    marginLeft: 4,
+    marginLeft: 6,
+    fontWeight: '500',
   },
   metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingTop: 8,
+    paddingTop: 10,
     borderTopWidth: 1,
     borderTopColor: COLORS.borderLight,
   },
   metaItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 5,
   },
   metaDivider: {
     width: 1,
-    height: 12,
+    height: 14,
     backgroundColor: COLORS.border,
-    marginHorizontal: 10,
+    marginHorizontal: 12,
   },
   metaText: {
-    fontSize: 12,
+    fontSize: 13,
     color: COLORS.textSecondary,
+    fontWeight: '600',
+  },
+  difficultyBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingVertical: 3,
+    paddingHorizontal: 8,
+    borderRadius: 10,
+    marginLeft: 'auto',
+  },
+  diffFacile: {
+    backgroundColor: COLORS.primaryLight,
+  },
+  diffMoyen: {
+    backgroundColor: '#FEF3C7',
+  },
+  diffDifficile: {
+    backgroundColor: COLORS.dangerLight,
+  },
+  difficultyText: {
+    fontSize: 12,
+    fontWeight: '700',
   },
 });

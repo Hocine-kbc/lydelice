@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   Modal,
   View,
@@ -9,7 +9,7 @@ import {
   StyleSheet,
   Alert,
   TextInput,
-  Platform,
+  Animated,
 } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { COLORS } from '../constants/theme';
@@ -33,10 +33,13 @@ export default function RecipeDetailModal({
   const [checkedIngredients, setCheckedIngredients] = useState({});
   const [checkedSteps, setCheckedSteps] = useState({});
 
+  // Animations
+  const servingsScale = useRef(new Animated.Value(1)).current;
+  const heartScale = useRef(new Animated.Value(1)).current;
+
   // Review state
   const [newRating, setNewRating] = useState(5);
   const [newComment, setNewComment] = useState('');
-  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
 
   // Sync servings when recipe changes
   React.useEffect(() => {
@@ -57,6 +60,44 @@ export default function RecipeDetailModal({
     return scaled % 1 === 0 ? scaled : scaled.toFixed(1);
   };
 
+  const handleAdjustServings = (delta) => {
+    const next = Math.max(1, servings + delta);
+    setServings(next);
+
+    // Spring animation on portions counter
+    Animated.sequence([
+      Animated.timing(servingsScale, {
+        toValue: 1.35,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+      Animated.spring(servingsScale, {
+        toValue: 1,
+        friction: 3,
+        tension: 80,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  };
+
+  const handleFavoritePress = () => {
+    Animated.sequence([
+      Animated.timing(heartScale, {
+        toValue: 1.45,
+        duration: 120,
+        useNativeDriver: true,
+      }),
+      Animated.spring(heartScale, {
+        toValue: 1,
+        friction: 3,
+        tension: 90,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
+    onToggleFavorite(recipe.id);
+  };
+
   const toggleIngredientCheck = (idx) => {
     setCheckedIngredients((prev) => ({
       ...prev,
@@ -73,14 +114,12 @@ export default function RecipeDetailModal({
 
   const handleSaveReview = () => {
     if (!newRating) return;
-    setIsSubmittingReview(true);
     onAddReview(recipe.id, {
       rating: newRating,
       comment: newComment,
     });
-    setIsSubmittingReview(false);
     setNewComment('');
-    Alert.alert('Merci !', 'Votre note et avis ont bien été enregistrés.');
+    Alert.alert('⭐ Merci !', 'Votre note et avis ont bien été enregistrés.');
   };
 
   const confirmDelete = () => {
@@ -101,8 +140,6 @@ export default function RecipeDetailModal({
     );
   };
 
-  const totalTime = (recipe.prepTime || 0) + (recipe.cookTime || 0);
-
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
       <View style={styles.container}>
@@ -113,27 +150,29 @@ export default function RecipeDetailModal({
               <Image source={{ uri: recipe.photo }} style={styles.heroImage} resizeMode="cover" />
             ) : (
               <View style={styles.heroPlaceholder}>
-                <MaterialCommunityIcons name="chef-hat" size={72} color={COLORS.primary} />
+                <MaterialCommunityIcons name="chef-hat" size={80} color={COLORS.mint} />
               </View>
             )}
 
             {/* Top Bar Actions */}
             <View style={styles.topBar}>
               <TouchableOpacity style={styles.iconCircle} onPress={onClose} activeOpacity={0.8}>
-                <Ionicons name="arrow-back" size={22} color={COLORS.text} />
+                <Ionicons name="arrow-back" size={22} color={COLORS.primaryDark} />
               </TouchableOpacity>
 
               <View style={styles.topRightActions}>
                 <TouchableOpacity
                   style={styles.iconCircle}
-                  onPress={() => onToggleFavorite(recipe.id)}
+                  onPress={handleFavoritePress}
                   activeOpacity={0.8}
                 >
-                  <Ionicons
-                    name={recipe.isFavorite ? 'heart' : 'heart-outline'}
-                    size={22}
-                    color={recipe.isFavorite ? COLORS.danger : COLORS.text}
-                  />
+                  <Animated.View style={{ transform: [{ scale: heartScale }] }}>
+                    <Ionicons
+                      name={recipe.isFavorite ? 'heart' : 'heart-outline'}
+                      size={22}
+                      color={recipe.isFavorite ? COLORS.danger : COLORS.primaryDark}
+                    />
+                  </Animated.View>
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -144,7 +183,7 @@ export default function RecipeDetailModal({
                   }}
                   activeOpacity={0.8}
                 >
-                  <Ionicons name="pencil" size={20} color={COLORS.text} />
+                  <Ionicons name="pencil" size={19} color={COLORS.primaryDark} />
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -152,7 +191,7 @@ export default function RecipeDetailModal({
                   onPress={confirmDelete}
                   activeOpacity={0.8}
                 >
-                  <Ionicons name="trash-outline" size={20} color={COLORS.danger} />
+                  <Ionicons name="trash-outline" size={19} color={COLORS.danger} />
                 </TouchableOpacity>
               </View>
             </View>
@@ -187,7 +226,7 @@ export default function RecipeDetailModal({
               <View style={styles.statDivider} />
 
               <View style={styles.statCol}>
-                <Ionicons name="flame-outline" size={20} color={COLORS.primary} />
+                <Ionicons name="flame-outline" size={20} color={COLORS.accent} />
                 <Text style={styles.statLabel}>Cuisson</Text>
                 <Text style={styles.statValue}>{recipe.cookTime || 0} min</Text>
               </View>
@@ -203,7 +242,7 @@ export default function RecipeDetailModal({
                       ? COLORS.danger
                       : recipe.difficulty === 'Moyen'
                       ? COLORS.warning
-                      : COLORS.success
+                      : COLORS.primaryMedium
                   }
                 />
                 <Text style={styles.statLabel}>Difficulté</Text>
@@ -216,7 +255,7 @@ export default function RecipeDetailModal({
                           ? COLORS.danger
                           : recipe.difficulty === 'Moyen'
                           ? COLORS.warning
-                          : COLORS.success,
+                          : COLORS.primaryMedium,
                     },
                   ]}
                 >
@@ -233,38 +272,42 @@ export default function RecipeDetailModal({
                   onClose();
                   onOpenTimerWithTime(recipe.cookTime);
                 }}
-                activeOpacity={0.8}
+                activeOpacity={0.85}
               >
-                <Ionicons name="timer-outline" size={20} color={COLORS.textLight} />
+                <Ionicons name="timer" size={20} color={COLORS.textLight} />
                 <Text style={styles.timerLauncherText}>
-                  Lancer le minuteur ({recipe.cookTime} min)
+                  Lancer le minuteur de cuisson ({recipe.cookTime} min)
                 </Text>
               </TouchableOpacity>
             )}
 
-            {/* Servings calculator */}
+            {/* Servings calculator with animated numbers */}
             <View style={styles.servingsRow}>
               <View>
                 <Text style={styles.sectionHeading}>Ingrédients</Text>
-                <Text style={styles.subHeading}>Pour {servings} personne(s)</Text>
+                <Text style={styles.subHeading}>Quantités ajustées pour {servings} personne(s)</Text>
               </View>
 
               <View style={styles.stepperContainer}>
                 <TouchableOpacity
                   style={[styles.stepperBtn, servings <= 1 && styles.stepperDisabled]}
                   disabled={servings <= 1}
-                  onPress={() => setServings((s) => Math.max(1, s - 1))}
+                  onPress={() => handleAdjustServings(-1)}
+                  activeOpacity={0.7}
                 >
-                  <Ionicons name="remove" size={18} color={COLORS.text} />
+                  <Ionicons name="remove" size={18} color={COLORS.primaryDark} />
                 </TouchableOpacity>
 
-                <Text style={styles.stepperVal}>{servings}</Text>
+                <Animated.View style={{ transform: [{ scale: servingsScale }] }}>
+                  <Text style={styles.stepperVal}>{servings}</Text>
+                </Animated.View>
 
                 <TouchableOpacity
                   style={styles.stepperBtn}
-                  onPress={() => setServings((s) => s + 1)}
+                  onPress={() => handleAdjustServings(1)}
+                  activeOpacity={0.7}
                 >
-                  <Ionicons name="add" size={18} color={COLORS.text} />
+                  <Ionicons name="add" size={18} color={COLORS.primaryDark} />
                 </TouchableOpacity>
               </View>
             </View>
@@ -280,9 +323,9 @@ export default function RecipeDetailModal({
                   }));
                   onAddAllToShoppingList(recipe.title, scaledIngredients);
                 }}
-                activeOpacity={0.8}
+                activeOpacity={0.85}
               >
-                <Ionicons name="cart-outline" size={18} color={COLORS.primary} />
+                <Ionicons name="cart-outline" size={19} color={COLORS.primary} />
                 <Text style={styles.addToCartText}>
                   Ajouter à ma liste de courses ({recipe.ingredients.length})
                 </Text>
@@ -303,9 +346,9 @@ export default function RecipeDetailModal({
                       activeOpacity={0.7}
                     >
                       <Ionicons
-                        name={isChecked ? 'checkbox' : 'square-outline'}
-                        size={20}
-                        color={isChecked ? COLORS.success : COLORS.textMuted}
+                        name={isChecked ? 'checkmark-circle' : 'ellipse-outline'}
+                        size={22}
+                        color={isChecked ? COLORS.mint : COLORS.textMuted}
                       />
                       <Text
                         style={[
@@ -331,7 +374,7 @@ export default function RecipeDetailModal({
             </View>
 
             {/* Steps / Instructions */}
-            <Text style={[styles.sectionHeading, { marginTop: 24 }]}>Préparation & Étapes</Text>
+            <Text style={[styles.sectionHeading, { marginTop: 26 }]}>Étapes de Préparation</Text>
             <View style={styles.stepsList}>
               {recipe.steps && recipe.steps.length > 0 ? (
                 recipe.steps.map((step, idx) => {
@@ -345,7 +388,7 @@ export default function RecipeDetailModal({
                     >
                       <View style={[styles.stepNumberCircle, isChecked && styles.stepNumberChecked]}>
                         {isChecked ? (
-                          <Ionicons name="checkmark" size={14} color={COLORS.textLight} />
+                          <Ionicons name="checkmark" size={15} color={COLORS.textLight} />
                         ) : (
                           <Text style={styles.stepNumberText}>{idx + 1}</Text>
                         )}
@@ -365,8 +408,8 @@ export default function RecipeDetailModal({
             {recipe.notes ? (
               <View style={styles.notesBox}>
                 <View style={styles.notesHeader}>
-                  <Ionicons name="bulb-outline" size={20} color={COLORS.warning} />
-                  <Text style={styles.notesTitle}>Astuce du Chef</Text>
+                  <Ionicons name="leaf" size={18} color={COLORS.primary} />
+                  <Text style={styles.notesTitle}>Le Secret du Chef</Text>
                 </View>
                 <Text style={styles.notesContent}>{recipe.notes}</Text>
               </View>
@@ -376,13 +419,13 @@ export default function RecipeDetailModal({
             <View style={styles.ratingSection}>
               <Text style={styles.sectionHeading}>Noter & Commenter ce plat</Text>
               <Text style={styles.subHeading}>
-                Attribuez une note et notez vos impressions gustatives !
+                Donnez votre note et vos impressions pour perfectionner la recette
               </Text>
 
               <View style={styles.ratingInputRow}>
                 <StarRating
                   rating={newRating}
-                  size={32}
+                  size={34}
                   interactive={true}
                   onRatingChange={(r) => setNewRating(r)}
                 />
@@ -391,7 +434,7 @@ export default function RecipeDetailModal({
 
               <TextInput
                 style={styles.commentInput}
-                placeholder="Votre avis (ex: Très moelleux, parfait avec 2g de sel en plus...)"
+                placeholder="Votre avis (ex: Délicieux, parfait avec 5 min de cuisson en moins...)"
                 placeholderTextColor={COLORS.textMuted}
                 value={newComment}
                 onChangeText={setNewComment}
@@ -402,7 +445,7 @@ export default function RecipeDetailModal({
               <TouchableOpacity
                 style={styles.submitRatingBtn}
                 onPress={handleSaveReview}
-                activeOpacity={0.8}
+                activeOpacity={0.85}
               >
                 <Ionicons name="checkmark-circle" size={20} color={COLORS.textLight} />
                 <Text style={styles.submitRatingBtnText}>Enregistrer ma note</Text>
@@ -417,7 +460,7 @@ export default function RecipeDetailModal({
                   {recipe.reviews.map((rev) => (
                     <View key={rev.id} style={styles.reviewItem}>
                       <View style={styles.reviewItemHeader}>
-                        <StarRating rating={rev.rating} size={14} />
+                        <StarRating rating={rev.rating} size={15} />
                         <Text style={styles.reviewDate}>{rev.date}</Text>
                       </View>
                       {rev.comment ? (
@@ -444,10 +487,10 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   heroContainer: {
-    height: 300,
+    height: 310,
     width: '100%',
     position: 'relative',
-    backgroundColor: COLORS.surfaceVariant,
+    backgroundColor: COLORS.primaryDark,
   },
   heroImage: {
     width: '100%',
@@ -462,7 +505,7 @@ const styles = StyleSheet.create({
   },
   topBar: {
     position: 'absolute',
-    top: 40,
+    top: 42,
     left: 16,
     right: 16,
     flexDirection: 'row',
@@ -477,20 +520,20 @@ const styles = StyleSheet.create({
     width: 42,
     height: 42,
     borderRadius: 21,
-    backgroundColor: 'rgba(255, 255, 255, 0.94)',
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
     justifyContent: 'center',
     alignItems: 'center',
     elevation: 3,
     shadowColor: COLORS.shadow,
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
+    shadowOpacity: 0.2,
     shadowRadius: 4,
   },
   detailsCard: {
     backgroundColor: COLORS.background,
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    marginTop: -28,
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    marginTop: -30,
     paddingHorizontal: 20,
     paddingTop: 24,
   },
@@ -502,24 +545,33 @@ const styles = StyleSheet.create({
   },
   categoryPill: {
     backgroundColor: COLORS.primaryLight,
-    paddingVertical: 5,
-    paddingHorizontal: 12,
+    paddingVertical: 6,
+    paddingHorizontal: 14,
     borderRadius: 14,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   categoryPillText: {
     color: COLORS.primary,
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '800',
     textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   ratingBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 5,
+    backgroundColor: COLORS.surface,
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: COLORS.borderLight,
   },
   ratingBadgeText: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '800',
     color: COLORS.text,
   },
   ratingCountText: {
@@ -527,22 +579,27 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
   },
   title: {
-    fontSize: 24,
-    fontWeight: '800',
+    fontSize: 25,
+    fontWeight: '900',
     color: COLORS.text,
-    lineHeight: 30,
+    lineHeight: 32,
     marginBottom: 16,
   },
   statsCard: {
     flexDirection: 'row',
     backgroundColor: COLORS.surface,
-    borderRadius: 18,
-    paddingVertical: 14,
-    paddingHorizontal: 12,
+    borderRadius: 20,
+    paddingVertical: 16,
+    paddingHorizontal: 14,
     justifyContent: 'space-around',
     borderWidth: 1,
     borderColor: COLORS.borderLight,
     marginBottom: 16,
+    elevation: 2,
+    shadowColor: COLORS.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
   },
   statCol: {
     alignItems: 'center',
@@ -551,16 +608,16 @@ const styles = StyleSheet.create({
   statLabel: {
     fontSize: 11,
     color: COLORS.textSecondary,
-    fontWeight: '500',
+    fontWeight: '600',
   },
   statValue: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '800',
     color: COLORS.text,
   },
   statDivider: {
     width: 1,
-    height: '80%',
+    height: '75%',
     backgroundColor: COLORS.border,
     alignSelf: 'center',
   },
@@ -568,16 +625,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: COLORS.secondary,
-    paddingVertical: 12,
-    borderRadius: 14,
+    backgroundColor: COLORS.primary,
+    paddingVertical: 14,
+    borderRadius: 16,
     gap: 8,
-    marginBottom: 20,
+    marginBottom: 22,
+    elevation: 2,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
   },
   timerLauncherText: {
     color: COLORS.textLight,
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '800',
   },
   servingsRow: {
     flexDirection: 'row',
@@ -586,8 +648,8 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   sectionHeading: {
-    fontSize: 19,
-    fontWeight: '700',
+    fontSize: 20,
+    fontWeight: '800',
     color: COLORS.text,
   },
   subHeading: {
@@ -599,48 +661,48 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: COLORS.surface,
-    borderRadius: 14,
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: COLORS.border,
-    padding: 3,
+    padding: 4,
   },
   stepperBtn: {
-    width: 34,
-    height: 34,
-    borderRadius: 10,
+    width: 36,
+    height: 36,
+    borderRadius: 12,
     backgroundColor: COLORS.surfaceVariant,
     justifyContent: 'center',
     alignItems: 'center',
   },
   stepperDisabled: {
-    opacity: 0.4,
+    opacity: 0.35,
   },
   stepperVal: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: COLORS.text,
-    paddingHorizontal: 14,
+    fontSize: 18,
+    fontWeight: '900',
+    color: COLORS.primary,
+    paddingHorizontal: 16,
   },
   addToCartBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: COLORS.primaryLight,
-    paddingVertical: 10,
-    borderRadius: 12,
+    paddingVertical: 12,
+    borderRadius: 14,
     borderWidth: 1,
-    borderColor: COLORS.primary,
+    borderColor: COLORS.mint,
     gap: 8,
     marginBottom: 14,
   },
   addToCartText: {
     color: COLORS.primary,
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: '800',
   },
   ingredientsList: {
     backgroundColor: COLORS.surface,
-    borderRadius: 16,
+    borderRadius: 18,
     padding: 8,
     borderWidth: 1,
     borderColor: COLORS.borderLight,
@@ -648,20 +710,20 @@ const styles = StyleSheet.create({
   ingredientItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 10,
-    paddingHorizontal: 8,
+    paddingVertical: 11,
+    paddingHorizontal: 10,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.borderLight,
-    gap: 10,
+    gap: 12,
   },
   ingredientChecked: {
-    backgroundColor: '#F9FAFB',
-    opacity: 0.65,
+    backgroundColor: '#F9FCFA',
+    opacity: 0.6,
   },
   ingredientName: {
     flex: 1,
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: '600',
     color: COLORS.text,
   },
   ingredientNameChecked: {
@@ -671,13 +733,13 @@ const styles = StyleSheet.create({
   ingredientBadge: {
     backgroundColor: COLORS.surfaceVariant,
     paddingVertical: 4,
-    paddingHorizontal: 8,
-    borderRadius: 8,
+    paddingHorizontal: 10,
+    borderRadius: 10,
   },
   ingredientBadgeText: {
     fontSize: 12,
-    fontWeight: '600',
-    color: COLORS.primaryDark,
+    fontWeight: '700',
+    color: COLORS.primaryMedium,
   },
   stepsList: {
     marginTop: 12,
@@ -686,51 +748,52 @@ const styles = StyleSheet.create({
   stepItem: {
     flexDirection: 'row',
     backgroundColor: COLORS.surface,
-    padding: 14,
-    borderRadius: 16,
+    padding: 15,
+    borderRadius: 18,
     borderWidth: 1,
     borderColor: COLORS.borderLight,
-    gap: 12,
+    gap: 14,
     alignItems: 'flex-start',
   },
   stepItemChecked: {
-    backgroundColor: '#F9FAFB',
-    opacity: 0.65,
+    backgroundColor: '#F9FCFA',
+    opacity: 0.6,
   },
   stepNumberCircle: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     backgroundColor: COLORS.primaryLight,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 2,
+    marginTop: 1,
   },
   stepNumberChecked: {
-    backgroundColor: COLORS.success,
+    backgroundColor: COLORS.mint,
   },
   stepNumberText: {
-    fontSize: 12,
-    fontWeight: '700',
+    fontSize: 13,
+    fontWeight: '800',
     color: COLORS.primary,
   },
   stepText: {
     flex: 1,
     fontSize: 14,
     color: COLORS.text,
-    lineHeight: 21,
+    lineHeight: 22,
+    fontWeight: '500',
   },
   stepTextChecked: {
     textDecorationLine: 'line-through',
     color: COLORS.textMuted,
   },
   notesBox: {
-    backgroundColor: '#FFFBEB',
-    borderRadius: 16,
+    backgroundColor: '#F3FAF5',
+    borderRadius: 18,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#FDE68A',
-    marginTop: 20,
+    borderColor: '#C6E8D2',
+    marginTop: 22,
   },
   notesHeader: {
     flexDirection: 'row',
@@ -740,17 +803,17 @@ const styles = StyleSheet.create({
   },
   notesTitle: {
     fontSize: 14,
-    fontWeight: '700',
-    color: '#B45309',
+    fontWeight: '800',
+    color: COLORS.primary,
   },
   notesContent: {
     fontSize: 13,
-    color: '#78350F',
-    lineHeight: 19,
+    color: COLORS.primaryDark,
+    lineHeight: 20,
   },
   ratingSection: {
     backgroundColor: COLORS.surface,
-    borderRadius: 20,
+    borderRadius: 22,
     padding: 18,
     borderWidth: 1,
     borderColor: COLORS.borderLight,
@@ -760,54 +823,56 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginVertical: 14,
+    marginVertical: 16,
   },
   ratingPreviewNumber: {
-    fontSize: 18,
-    fontWeight: '700',
+    fontSize: 19,
+    fontWeight: '900',
     color: COLORS.star,
   },
   commentInput: {
     backgroundColor: COLORS.surfaceVariant,
     borderRadius: 14,
-    padding: 12,
+    padding: 14,
     fontSize: 14,
     color: COLORS.text,
     textAlignVertical: 'top',
-    minHeight: 70,
-    marginBottom: 12,
+    minHeight: 75,
+    marginBottom: 14,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   submitRatingBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: COLORS.primary,
-    paddingVertical: 12,
-    borderRadius: 12,
+    paddingVertical: 14,
+    borderRadius: 14,
     gap: 8,
   },
   submitRatingBtnText: {
     color: COLORS.textLight,
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '800',
   },
   previousReviewsContainer: {
-    marginTop: 18,
+    marginTop: 20,
     borderTopWidth: 1,
     borderTopColor: COLORS.borderLight,
-    paddingTop: 14,
+    paddingTop: 16,
   },
   previousReviewsTitle: {
-    fontSize: 13,
-    fontWeight: '700',
+    fontSize: 14,
+    fontWeight: '800',
     color: COLORS.textSecondary,
     marginBottom: 10,
   },
   reviewItem: {
     backgroundColor: COLORS.surfaceVariant,
-    padding: 10,
-    borderRadius: 12,
-    marginBottom: 8,
+    padding: 12,
+    borderRadius: 14,
+    marginBottom: 10,
   },
   reviewItemHeader: {
     flexDirection: 'row',
@@ -822,7 +887,7 @@ const styles = StyleSheet.create({
   reviewComment: {
     fontSize: 13,
     color: COLORS.text,
-    lineHeight: 18,
+    lineHeight: 19,
   },
   emptyNotice: {
     fontSize: 13,

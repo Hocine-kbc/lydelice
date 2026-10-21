@@ -64,7 +64,6 @@ export default function RecipeFormModal({
           : ['']
       );
     } else {
-      // Reset defaults for new recipe
       setTitle('');
       setCategory('Plat');
       setPhoto(null);
@@ -75,10 +74,10 @@ export default function RecipeFormModal({
       setRating(5);
       setNotes('');
       setIngredients([
-        { name: 'Farine', amount: '200', unit: 'g' },
-        { name: 'Beurre', amount: '50', unit: 'g' },
+        { name: 'Farine bio', amount: '200', unit: 'g' },
+        { name: 'Beurre fermier', amount: '50', unit: 'g' },
       ]);
-      setSteps(['Préparer les ingrédients', '']);
+      setSteps(['Laver et préparer les ingrédients', '']);
     }
   }, [recipeToEdit, visible]);
 
@@ -90,7 +89,7 @@ export default function RecipeFormModal({
         if (status !== 'granted') {
           Alert.alert(
             'Permission requise',
-            "LyDélice a besoin de l'accès à l'appareil photo pour immortaliser votre plat !"
+            "LyDélice a besoin de l'accès à l'appareil photo pour photographier votre plat."
           );
           return;
         }
@@ -107,7 +106,7 @@ export default function RecipeFormModal({
       }
     } catch (e) {
       console.warn('Camera error:', e);
-      Alert.alert('Erreur', "Impossible d'accéder à l'appareil photo sur cet appareil.");
+      Alert.alert('Erreur', "Impossible d'accéder à l'appareil photo.");
     }
   };
 
@@ -225,7 +224,7 @@ export default function RecipeFormModal({
             <Ionicons name="close" size={24} color={COLORS.text} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>
-            {isEditing ? 'Modifier la recette' : 'Nouvelle Recette'}
+            {isEditing ? 'Modifier la recette' : 'Créer une Recette'}
           </Text>
           <TouchableOpacity onPress={handleSave} style={styles.saveHeaderBtn}>
             <Text style={styles.saveHeaderBtnText}>Enregistrer</Text>
@@ -239,7 +238,7 @@ export default function RecipeFormModal({
         >
           {/* PHOTO SECTION */}
           <View style={styles.section}>
-            <Text style={styles.label}>Photo de la recette</Text>
+            <Text style={styles.label}>Photo de votre création</Text>
             {photo ? (
               <View style={styles.photoPreviewContainer}>
                 <Image source={{ uri: photo }} style={styles.photoPreview} resizeMode="cover" />
@@ -247,6 +246,7 @@ export default function RecipeFormModal({
                   <TouchableOpacity
                     style={styles.photoActionButton}
                     onPress={handleTakePhoto}
+                    activeOpacity={0.8}
                   >
                     <Ionicons name="camera" size={16} color={COLORS.textLight} />
                     <Text style={styles.photoActionText}>Appareil</Text>
@@ -254,6 +254,7 @@ export default function RecipeFormModal({
                   <TouchableOpacity
                     style={styles.photoActionButton}
                     onPress={handlePickFromGallery}
+                    activeOpacity={0.8}
                   >
                     <Ionicons name="images" size={16} color={COLORS.textLight} />
                     <Text style={styles.photoActionText}>Galerie</Text>
@@ -261,6 +262,7 @@ export default function RecipeFormModal({
                   <TouchableOpacity
                     style={[styles.photoActionButton, styles.photoActionDelete]}
                     onPress={() => setPhoto(null)}
+                    activeOpacity={0.8}
                   >
                     <Ionicons name="trash" size={16} color={COLORS.textLight} />
                   </TouchableOpacity>
@@ -268,20 +270,22 @@ export default function RecipeFormModal({
               </View>
             ) : (
               <View style={styles.photoPickerBox}>
-                <MaterialCommunityIcons
-                  name="camera-plus"
-                  size={42}
-                  color={COLORS.primary}
-                />
-                <Text style={styles.photoPickerTitle}>Ajoutez une photo gourmande</Text>
+                <View style={styles.cameraIconBadge}>
+                  <MaterialCommunityIcons
+                    name="camera-plus"
+                    size={36}
+                    color={COLORS.primary}
+                  />
+                </View>
+                <Text style={styles.photoPickerTitle}>Ajoutez une photo alléchante</Text>
                 <Text style={styles.photoPickerSub}>
-                  Prenez votre plat en photo ou choisissez-la dans votre galerie
+                  Photographiez votre plat tout juste préparé ou choisissez depuis votre galerie
                 </Text>
                 <View style={styles.photoBtnRow}>
                   <TouchableOpacity
                     style={styles.pickButtonPrimary}
                     onPress={handleTakePhoto}
-                    activeOpacity={0.8}
+                    activeOpacity={0.85}
                   >
                     <Ionicons name="camera" size={18} color={COLORS.textLight} />
                     <Text style={styles.pickButtonPrimaryText}>Prendre une photo</Text>
@@ -290,10 +294,10 @@ export default function RecipeFormModal({
                   <TouchableOpacity
                     style={styles.pickButtonSecondary}
                     onPress={handlePickFromGallery}
-                    activeOpacity={0.8}
+                    activeOpacity={0.85}
                   >
                     <Ionicons name="images" size={18} color={COLORS.primary} />
-                    <Text style={styles.pickButtonSecondaryText}>Galerie</Text>
+                    <Text style={styles.pickButtonSecondaryText}>Depuis la galerie</Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -305,7 +309,7 @@ export default function RecipeFormModal({
             <Text style={styles.label}>Titre du plat *</Text>
             <TextInput
               style={styles.input}
-              placeholder="Ex : Tarte Tatin aux Pommes Caramélisées"
+              placeholder="Ex : Risotto Crémeux aux Morilles & Parmesan"
               placeholderTextColor={COLORS.textMuted}
               value={title}
               onChangeText={setTitle}
@@ -314,7 +318,7 @@ export default function RecipeFormModal({
 
           {/* CATEGORY SELECTOR */}
           <View style={styles.section}>
-            <Text style={styles.label}>Catégorie</Text>
+            <Text style={styles.label}>Catégorie culinaire</Text>
             <View style={styles.chipsRow}>
               {CATEGORIES.filter((c) => c.id !== 'all').map((cat) => {
                 const isSelected = category === cat.id;
@@ -323,11 +327,12 @@ export default function RecipeFormModal({
                     key={cat.id}
                     style={[styles.chip, isSelected && styles.chipSelected]}
                     onPress={() => setCategory(cat.id)}
+                    activeOpacity={0.8}
                   >
                     <MaterialCommunityIcons
                       name={cat.icon}
-                      size={16}
-                      color={isSelected ? COLORS.textLight : COLORS.primary}
+                      size={15}
+                      color={isSelected ? COLORS.textLight : COLORS.primaryMedium}
                     />
                     <Text
                       style={[styles.chipText, isSelected && styles.chipTextSelected]}
@@ -342,7 +347,7 @@ export default function RecipeFormModal({
 
           {/* META: PREP, COOK, SERVINGS */}
           <View style={styles.section}>
-            <Text style={styles.label}>Temps & Portions</Text>
+            <Text style={styles.label}>Temps & Convives</Text>
             <View style={styles.gridThree}>
               <View style={styles.gridItem}>
                 <Text style={styles.subLabel}>Prépa (min)</Text>
@@ -381,7 +386,7 @@ export default function RecipeFormModal({
 
           {/* DIFFICULTY */}
           <View style={styles.section}>
-            <Text style={styles.label}>Difficulté</Text>
+            <Text style={styles.label}>Niveau de difficulté</Text>
             <View style={styles.diffRow}>
               {DIFFICULTIES.map((diff) => {
                 const isSelected = difficulty === diff.id;
@@ -396,6 +401,7 @@ export default function RecipeFormModal({
                       },
                     ]}
                     onPress={() => setDifficulty(diff.id)}
+                    activeOpacity={0.8}
                   >
                     <Text
                       style={[
@@ -413,11 +419,11 @@ export default function RecipeFormModal({
 
           {/* RATING */}
           <View style={styles.section}>
-            <Text style={styles.label}>Note de la recette</Text>
+            <Text style={styles.label}>Votre note initiale</Text>
             <View style={styles.ratingBox}>
               <StarRating
                 rating={rating}
-                size={32}
+                size={34}
                 interactive={true}
                 onRatingChange={(r) => setRating(r)}
               />
@@ -430,7 +436,7 @@ export default function RecipeFormModal({
             <View style={styles.sectionHeaderRow}>
               <Text style={styles.label}>Ingrédients</Text>
               <TouchableOpacity onPress={addIngredientRow} style={styles.addRowBtn}>
-                <Ionicons name="add-circle" size={18} color={COLORS.primary} />
+                <Ionicons name="add-circle" size={19} color={COLORS.primary} />
                 <Text style={styles.addRowBtnText}>Ajouter</Text>
               </TouchableOpacity>
             </View>
@@ -439,7 +445,7 @@ export default function RecipeFormModal({
               <View key={idx} style={styles.ingredientRow}>
                 <TextInput
                   style={[styles.input, { flex: 2 }]}
-                  placeholder="Nom (ex: Farine)"
+                  placeholder="Ingrédient (ex: Farine)"
                   placeholderTextColor={COLORS.textMuted}
                   value={ing.name}
                   onChangeText={(v) => updateIngredient(idx, 'name', v)}
@@ -463,7 +469,7 @@ export default function RecipeFormModal({
                   style={styles.deleteRowBtn}
                   onPress={() => removeIngredient(idx)}
                 >
-                  <Ionicons name="trash-outline" size={18} color={COLORS.danger} />
+                  <Ionicons name="trash-outline" size={19} color={COLORS.danger} />
                 </TouchableOpacity>
               </View>
             ))}
@@ -474,7 +480,7 @@ export default function RecipeFormModal({
             <View style={styles.sectionHeaderRow}>
               <Text style={styles.label}>Étapes de préparation</Text>
               <TouchableOpacity onPress={addStepRow} style={styles.addRowBtn}>
-                <Ionicons name="add-circle" size={18} color={COLORS.primary} />
+                <Ionicons name="add-circle" size={19} color={COLORS.primary} />
                 <Text style={styles.addRowBtnText}>Ajouter une étape</Text>
               </TouchableOpacity>
             </View>
@@ -496,7 +502,7 @@ export default function RecipeFormModal({
                   style={styles.deleteRowBtn}
                   onPress={() => removeStep(idx)}
                 >
-                  <Ionicons name="trash-outline" size={18} color={COLORS.danger} />
+                  <Ionicons name="trash-outline" size={19} color={COLORS.danger} />
                 </TouchableOpacity>
               </View>
             ))}
@@ -504,7 +510,7 @@ export default function RecipeFormModal({
 
           {/* CHEF NOTES / TIPS */}
           <View style={styles.section}>
-            <Text style={styles.label}>Astuces du Chef & Notes personnelles</Text>
+            <Text style={styles.label}>Astuces du Chef & Remarques</Text>
             <TextInput
               style={[styles.input, styles.notesInput]}
               placeholder="Conseils de cuisson, variantes, accord mets & vins..."
@@ -520,11 +526,11 @@ export default function RecipeFormModal({
           <TouchableOpacity
             style={styles.saveBottomBtn}
             onPress={handleSave}
-            activeOpacity={0.8}
+            activeOpacity={0.88}
           >
             <Ionicons name="checkmark-done" size={22} color={COLORS.textLight} />
             <Text style={styles.saveBottomBtnText}>
-              {isEditing ? 'Enregistrer les modifications' : 'Créer ma recette'}
+              {isEditing ? 'Enregistrer les modifications' : 'Créer ma recette gourmande'}
             </Text>
           </TouchableOpacity>
         </ScrollView>
@@ -554,26 +560,26 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 17,
-    fontWeight: '700',
+    fontWeight: '800',
     color: COLORS.text,
   },
   saveHeaderBtn: {
     backgroundColor: COLORS.primary,
-    paddingVertical: 6,
-    paddingHorizontal: 14,
+    paddingVertical: 7,
+    paddingHorizontal: 16,
     borderRadius: 14,
   },
   saveHeaderBtnText: {
     color: COLORS.textLight,
-    fontWeight: '700',
+    fontWeight: '800',
     fontSize: 13,
   },
   scrollContent: {
-    padding: 16,
+    padding: 18,
     paddingBottom: 50,
   },
   section: {
-    marginBottom: 20,
+    marginBottom: 22,
   },
   sectionHeaderRow: {
     flexDirection: 'row',
@@ -583,7 +589,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 15,
-    fontWeight: '700',
+    fontWeight: '800',
     color: COLORS.text,
     marginBottom: 8,
   },
@@ -597,16 +603,16 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.surface,
     borderWidth: 1,
     borderColor: COLORS.border,
-    borderRadius: 12,
+    borderRadius: 14,
     paddingHorizontal: 14,
-    paddingVertical: 10,
+    paddingVertical: 12,
     fontSize: 14,
     color: COLORS.text,
   },
   photoPreviewContainer: {
     width: '100%',
-    height: 200,
-    borderRadius: 16,
+    height: 210,
+    borderRadius: 20,
     overflow: 'hidden',
     position: 'relative',
     borderWidth: 1,
@@ -618,82 +624,92 @@ const styles = StyleSheet.create({
   },
   photoOverlayActions: {
     position: 'absolute',
-    bottom: 10,
-    right: 10,
+    bottom: 12,
+    right: 12,
     flexDirection: 'row',
     gap: 8,
   },
   photoActionButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    backgroundColor: 'rgba(28, 25, 23, 0.85)',
-    paddingVertical: 6,
-    paddingHorizontal: 10,
+    gap: 5,
+    backgroundColor: 'rgba(27, 67, 50, 0.9)',
+    paddingVertical: 7,
+    paddingHorizontal: 12,
     borderRadius: 12,
   },
   photoActionDelete: {
-    backgroundColor: 'rgba(239, 68, 68, 0.85)',
+    backgroundColor: 'rgba(220, 38, 38, 0.9)',
   },
   photoActionText: {
     color: COLORS.textLight,
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   photoPickerBox: {
     backgroundColor: COLORS.surface,
     borderWidth: 2,
     borderStyle: 'dashed',
-    borderColor: COLORS.accent,
-    borderRadius: 16,
-    padding: 20,
+    borderColor: COLORS.mint,
+    borderRadius: 20,
+    padding: 22,
     alignItems: 'center',
   },
+  cameraIconBadge: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: COLORS.primaryLight,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
   photoPickerTitle: {
-    fontSize: 15,
-    fontWeight: '700',
+    fontSize: 16,
+    fontWeight: '800',
     color: COLORS.text,
-    marginTop: 8,
   },
   photoPickerSub: {
     fontSize: 12,
     color: COLORS.textSecondary,
     textAlign: 'center',
     marginTop: 4,
-    marginBottom: 14,
+    marginBottom: 16,
+    lineHeight: 18,
   },
   photoBtnRow: {
     flexDirection: 'row',
-    gap: 10,
+    gap: 12,
   },
   pickButtonPrimary: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: COLORS.primary,
-    paddingVertical: 9,
-    paddingHorizontal: 14,
-    borderRadius: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 14,
     gap: 6,
+    elevation: 2,
   },
   pickButtonPrimaryText: {
     color: COLORS.textLight,
-    fontWeight: '700',
+    fontWeight: '800',
     fontSize: 13,
   },
   pickButtonSecondary: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: COLORS.primaryLight,
-    paddingVertical: 9,
-    paddingHorizontal: 14,
-    borderRadius: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 14,
     gap: 6,
     borderWidth: 1,
-    borderColor: COLORS.primary,
+    borderColor: COLORS.mint,
   },
   pickButtonSecondaryText: {
     color: COLORS.primary,
-    fontWeight: '700',
+    fontWeight: '800',
     fontSize: 13,
   },
   chipsRow: {
@@ -714,7 +730,7 @@ const styles = StyleSheet.create({
   },
   chipSelected: {
     backgroundColor: COLORS.primary,
-    borderColor: COLORS.primary,
+    borderColor: COLORS.primaryDark,
   },
   chipText: {
     fontSize: 13,
@@ -723,6 +739,7 @@ const styles = StyleSheet.create({
   },
   chipTextSelected: {
     color: COLORS.textLight,
+    fontWeight: '700',
   },
   gridThree: {
     flexDirection: 'row',
@@ -740,7 +757,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     textAlign: 'center',
     fontSize: 15,
-    fontWeight: '700',
+    fontWeight: '800',
     color: COLORS.text,
   },
   diffRow: {
@@ -749,9 +766,9 @@ const styles = StyleSheet.create({
   },
   diffBtn: {
     flex: 1,
-    paddingVertical: 10,
+    paddingVertical: 11,
     alignItems: 'center',
-    borderRadius: 12,
+    borderRadius: 14,
     borderWidth: 1,
     borderColor: COLORS.border,
     backgroundColor: COLORS.surface,
@@ -763,11 +780,12 @@ const styles = StyleSheet.create({
   },
   diffBtnTextSelected: {
     color: COLORS.textLight,
+    fontWeight: '800',
   },
   ratingBox: {
     backgroundColor: COLORS.surface,
-    borderRadius: 14,
-    padding: 14,
+    borderRadius: 16,
+    padding: 16,
     alignItems: 'center',
     borderWidth: 1,
     borderColor: COLORS.border,
@@ -775,7 +793,7 @@ const styles = StyleSheet.create({
   ratingNumberDisplay: {
     marginTop: 8,
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '800',
     color: COLORS.star,
   },
   addRowBtn: {
@@ -801,9 +819,9 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   stepBadge: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     backgroundColor: COLORS.primaryLight,
     justifyContent: 'center',
     alignItems: 'center',
@@ -811,12 +829,12 @@ const styles = StyleSheet.create({
   },
   stepBadgeText: {
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '800',
     color: COLORS.primary,
   },
   stepInput: {
     flex: 1,
-    minHeight: 46,
+    minHeight: 48,
   },
   deleteRowBtn: {
     padding: 8,
@@ -830,19 +848,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 15,
-    borderRadius: 16,
+    paddingVertical: 16,
+    borderRadius: 18,
     gap: 8,
-    marginTop: 10,
-    elevation: 3,
+    marginTop: 12,
+    elevation: 4,
     shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 3 },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
-    shadowRadius: 5,
+    shadowRadius: 6,
   },
   saveBottomBtnText: {
     color: COLORS.textLight,
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '800',
   },
 });

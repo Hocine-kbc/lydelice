@@ -6,7 +6,6 @@ import {
   FlatList,
   TouchableOpacity,
   TextInput,
-  Alert,
 } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { COLORS } from '../constants/theme';
@@ -40,7 +39,7 @@ export default function ShoppingListTab({
         <View style={styles.inputRow}>
           <TextInput
             style={[styles.input, { flex: 2 }]}
-            placeholder="Ajouter un article (ex: Lait, Pain...)"
+            placeholder="Ajouter un article (ex: Lait d'avoine, Poireaux...)"
             placeholderTextColor={COLORS.textMuted}
             value={newItemText}
             onChangeText={setNewItemText}
@@ -56,6 +55,7 @@ export default function ShoppingListTab({
             style={[styles.addBtn, !newItemText.trim() && styles.addBtnDisabled]}
             onPress={handleAdd}
             disabled={!newItemText.trim()}
+            activeOpacity={0.8}
           >
             <Ionicons name="add" size={24} color={COLORS.textLight} />
           </TouchableOpacity>
@@ -65,12 +65,15 @@ export default function ShoppingListTab({
       {/* Header with stats and clear button */}
       {shoppingList.length > 0 && (
         <View style={styles.statsBar}>
-          <Text style={styles.statsText}>
-            {shoppingList.length} article(s) • {checkedCount} acheté(s)
-          </Text>
+          <View style={styles.statsRow}>
+            <Ionicons name="cart" size={16} color={COLORS.primary} />
+            <Text style={styles.statsText}>
+              {shoppingList.length} ingrédient(s) • {checkedCount} acheté(s)
+            </Text>
+          </View>
           {checkedCount > 0 && (
-            <TouchableOpacity onPress={onClearChecked}>
-              <Text style={styles.clearText}>Supprimer cochés</Text>
+            <TouchableOpacity onPress={onClearChecked} activeOpacity={0.7}>
+              <Text style={styles.clearText}>Vider cochés</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -83,14 +86,16 @@ export default function ShoppingListTab({
         contentContainerStyle={styles.listContent}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <MaterialCommunityIcons
-              name="cart-outline"
-              size={64}
-              color={COLORS.textMuted}
-            />
+            <View style={styles.emptyIconBadge}>
+              <MaterialCommunityIcons
+                name="cart-outline"
+                size={54}
+                color={COLORS.primaryMedium}
+              />
+            </View>
             <Text style={styles.emptyTitle}>Votre liste de courses est vide</Text>
             <Text style={styles.emptySub}>
-              Ajoutez des ingrédients directement depuis n’importe quelle recette en un clic, ou saisissez vos articles ci-dessus !
+              Ajoutez les ingrédients de n’importe quelle recette en un clic grâce au bouton « Ajouter à ma liste » !
             </Text>
           </View>
         }
@@ -99,12 +104,12 @@ export default function ShoppingListTab({
             <TouchableOpacity
               style={styles.checkboxTouch}
               onPress={() => onToggleItem(item.id)}
-              activeOpacity={0.7}
+              activeOpacity={0.75}
             >
               <Ionicons
-                name={item.checked ? 'checkbox' : 'square-outline'}
-                size={22}
-                color={item.checked ? COLORS.success : COLORS.textSecondary}
+                name={item.checked ? 'checkmark-circle' : 'ellipse-outline'}
+                size={24}
+                color={item.checked ? COLORS.mint : COLORS.textMuted}
               />
               <View style={styles.itemTextContainer}>
                 <Text
@@ -120,7 +125,7 @@ export default function ShoppingListTab({
                 ) : null}
                 {item.recipeTitle && (
                   <Text style={styles.itemRecipe}>
-                    Recette : {item.recipeTitle}
+                    Pour : {item.recipeTitle}
                   </Text>
                 )}
               </View>
@@ -129,6 +134,7 @@ export default function ShoppingListTab({
             <TouchableOpacity
               style={styles.deleteTouch}
               onPress={() => onDeleteItem(item.id)}
+              activeOpacity={0.7}
             >
               <Ionicons name="trash-outline" size={18} color={COLORS.danger} />
             </TouchableOpacity>
@@ -158,16 +164,16 @@ const styles = StyleSheet.create({
   input: {
     backgroundColor: COLORS.surfaceVariant,
     paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: 12,
+    paddingVertical: 11,
+    borderRadius: 14,
     fontSize: 14,
     color: COLORS.text,
   },
   addBtn: {
     backgroundColor: COLORS.primary,
-    width: 44,
-    height: 44,
-    borderRadius: 12,
+    width: 46,
+    height: 46,
+    borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -178,18 +184,23 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 16,
+    paddingHorizontal: 18,
     paddingVertical: 10,
-    backgroundColor: COLORS.surfaceVariant,
+    backgroundColor: COLORS.primaryLight,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
   statsText: {
     fontSize: 12,
-    fontWeight: '600',
-    color: COLORS.textSecondary,
+    fontWeight: '700',
+    color: COLORS.primary,
   },
   clearText: {
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '800',
     color: COLORS.danger,
   },
   listContent: {
@@ -203,14 +214,19 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.surface,
     paddingVertical: 12,
     paddingHorizontal: 14,
-    borderRadius: 14,
+    borderRadius: 16,
     marginBottom: 10,
     borderWidth: 1,
     borderColor: COLORS.borderLight,
+    elevation: 1,
+    shadowColor: COLORS.shadow,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 3,
   },
   itemCardChecked: {
-    backgroundColor: '#F9FAFB',
-    opacity: 0.7,
+    backgroundColor: '#F9FCFA',
+    opacity: 0.65,
   },
   checkboxTouch: {
     flex: 1,
@@ -223,7 +239,7 @@ const styles = StyleSheet.create({
   },
   itemName: {
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: '700',
     color: COLORS.text,
   },
   itemNameChecked: {
@@ -232,8 +248,8 @@ const styles = StyleSheet.create({
   },
   itemAmount: {
     fontSize: 12,
-    color: COLORS.primaryDark,
-    fontWeight: '500',
+    color: COLORS.primaryMedium,
+    fontWeight: '700',
     marginTop: 2,
   },
   itemRecipe: {
@@ -243,19 +259,27 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   deleteTouch: {
-    padding: 6,
+    padding: 8,
   },
   emptyContainer: {
     alignItems: 'center',
     justifyContent: 'center',
     paddingTop: 60,
-    paddingHorizontal: 24,
+    paddingHorizontal: 28,
+  },
+  emptyIconBadge: {
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+    backgroundColor: COLORS.primaryLight,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
   },
   emptyTitle: {
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: '800',
     color: COLORS.text,
-    marginTop: 16,
     marginBottom: 8,
   },
   emptySub: {
