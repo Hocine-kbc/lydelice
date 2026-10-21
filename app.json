@@ -34,7 +34,8 @@
           "cameraPermission": "LyDélice a besoin d'accéder à votre appareil photo pour photographier vos recettes."
         }
       ],
-      "expo-font"
+      "expo-font",
+      "expo-status-bar"
     ],
     "web": {
       "favicon": "./assets/favicon.png"
