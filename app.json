@@ -1,22 +1,41 @@
 {
   "expo": {
-    "name": "lydelice",
+    "name": "LyDélice",
     "slug": "lydelice",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "LyDélice a besoin d'accéder à votre appareil photo pour photographier vos plats et recettes.",
+        "NSPhotoLibraryUsageDescription": "LyDélice a besoin d'accéder à votre galerie pour importer des photos de vos recettes."
+      }
     },
     "android": {
+      "permissions": [
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE"
+      ],
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#FFF8F2",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       }
     },
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "LyDélice a besoin d'accéder à vos photos pour ajouter des images de recettes.",
+          "cameraPermission": "LyDélice a besoin d'accéder à votre appareil photo pour photographier vos recettes."
+        }
+      ],
+      "expo-font"
+    ],
     "web": {
       "favicon": "./assets/favicon.png"
     }
