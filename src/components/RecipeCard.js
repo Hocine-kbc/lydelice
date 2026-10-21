@@ -31,7 +31,6 @@ export default function RecipeCard({ recipe, onPress, onToggleFavorite }) {
   const handleFavoritePress = (e) => {
     e.stopPropagation();
 
-    // Heart bounce animation
     Animated.sequence([
       Animated.timing(heartScale, {
         toValue: 1.4,
@@ -68,7 +67,7 @@ export default function RecipeCard({ recipe, onPress, onToggleFavorite }) {
             </View>
           )}
 
-          {/* Category Badge - Glassmorphism style */}
+          {/* Category Badge - Pill */}
           {recipe.category && (
             <View style={styles.categoryBadge}>
               <Text style={styles.categoryText}>{recipe.category}</Text>
@@ -121,6 +120,7 @@ export default function RecipeCard({ recipe, onPress, onToggleFavorite }) {
 
             <View style={styles.metaDivider} />
 
+            {/* Pill shaped difficulty badge */}
             <View
               style={[
                 styles.difficultyBadge,
@@ -171,7 +171,7 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: COLORS.surface,
-    borderRadius: 22,
+    borderRadius: 26,
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: COLORS.borderLight,
@@ -202,10 +202,10 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 14,
     left: 14,
-    backgroundColor: 'rgba(27, 67, 50, 0.88)',
-    paddingVertical: 5,
-    paddingHorizontal: 12,
-    borderRadius: 14,
+    backgroundColor: 'rgba(27, 67, 50, 0.9)',
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+    borderRadius: 9999,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.25)',
   },
@@ -223,7 +223,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
     width: 38,
     height: 38,
-    borderRadius: 19,
+    borderRadius: 9999,
     justifyContent: 'center',
     alignItems: 'center',
     elevation: 3,
@@ -279,10 +279,10 @@ const styles = StyleSheet.create({
   difficultyBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    paddingVertical: 3,
-    paddingHorizontal: 8,
-    borderRadius: 10,
+    gap: 5,
+    paddingVertical: 5,
+    paddingHorizontal: 12,
+    borderRadius: 9999,
     marginLeft: 'auto',
   },
   diffFacile: {

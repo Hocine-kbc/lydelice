@@ -51,7 +51,7 @@ function AnimatedTabButton({ active, label, iconFilled, iconOutline, badgeCount,
       activeOpacity={0.8}
     >
       <Animated.View style={[styles.tabContent, { transform: [{ scale: scaleAnim }] }]}>
-        <View style={active ? styles.activeTabIconPill : null}>
+        <View style={active ? styles.activeTabIconPill : styles.inactiveTabIconBox}>
           <Ionicons
             name={active ? iconFilled : iconOutline}
             size={22}
@@ -82,7 +82,7 @@ export default function App() {
   const [loading, setLoading] = useState(true);
 
   // Navigation & Tabs
-  const [currentTab, setCurrentTab] = useState('recipes'); // 'recipes' | 'favorites' | 'timer' | 'shopping'
+  const [currentTab, setCurrentTab] = useState('recipes');
 
   // Filters
   const [searchQuery, setSearchQuery] = useState('');
@@ -267,7 +267,7 @@ export default function App() {
       <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
         <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
 
-        {/* TOP BAR - Vert Sapin Gourmet */}
+        {/* TOP BAR */}
         <View style={styles.topHeader}>
           <View style={styles.brandingRow}>
             <View style={styles.logoBadge}>
@@ -279,6 +279,7 @@ export default function App() {
             </View>
           </View>
 
+          {/* Pill "+ Recette" Button */}
           <Animated.View style={{ transform: [{ scale: addBtnScale }] }}>
             <TouchableOpacity
               style={styles.newRecipeBtn}
@@ -316,7 +317,7 @@ export default function App() {
           </View>
         ) : (
           <View style={styles.flexOne}>
-            {/* Search Input */}
+            {/* Pill Search Input */}
             <View style={styles.searchWrapper}>
               <View style={styles.searchBar}>
                 <Ionicons name="search" size={19} color={COLORS.primaryMedium} />
@@ -336,7 +337,7 @@ export default function App() {
               </View>
             </View>
 
-            {/* Category Pills with animated touches */}
+            {/* Category Pills */}
             <CategoryPills
               selectedCategory={selectedCategory}
               onSelectCategory={setSelectedCategory}
@@ -394,7 +395,7 @@ export default function App() {
           </View>
         )}
 
-        {/* ANIMATED BOTTOM TAB BAR */}
+        {/* BOTTOM TAB BAR */}
         <View style={styles.bottomTabBar}>
           <AnimatedTabButton
             active={currentTab === 'recipes'}
@@ -503,7 +504,7 @@ const styles = StyleSheet.create({
   logoBadge: {
     width: 42,
     height: 42,
-    borderRadius: 14,
+    borderRadius: 9999,
     backgroundColor: COLORS.primary,
     justifyContent: 'center',
     alignItems: 'center',
@@ -528,10 +529,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: COLORS.primary,
-    paddingVertical: 9,
-    paddingHorizontal: 15,
-    borderRadius: 16,
-    gap: 4,
+    paddingVertical: 10,
+    paddingHorizontal: 18,
+    borderRadius: 9999,
+    gap: 5,
     elevation: 3,
     shadowColor: COLORS.primary,
     shadowOffset: { width: 0, height: 2 },
@@ -551,9 +552,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: COLORS.surface,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 18,
+    paddingHorizontal: 18,
+    paddingVertical: 11,
+    borderRadius: 9999,
     borderWidth: 1,
     borderColor: COLORS.border,
     gap: 10,
@@ -581,7 +582,7 @@ const styles = StyleSheet.create({
   emptyIconBadge: {
     width: 90,
     height: 90,
-    borderRadius: 45,
+    borderRadius: 9999,
     backgroundColor: COLORS.primaryLight,
     justifyContent: 'center',
     alignItems: 'center',
@@ -604,9 +605,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: COLORS.primary,
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 16,
+    paddingVertical: 13,
+    paddingHorizontal: 24,
+    borderRadius: 9999,
     gap: 8,
     elevation: 2,
   },
@@ -641,9 +642,13 @@ const styles = StyleSheet.create({
   },
   activeTabIconPill: {
     backgroundColor: COLORS.primaryLight,
-    paddingHorizontal: 14,
-    paddingVertical: 3,
-    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 4,
+    borderRadius: 9999,
+  },
+  inactiveTabIconBox: {
+    paddingHorizontal: 16,
+    paddingVertical: 4,
   },
   tabLabel: {
     fontSize: 11,
@@ -662,7 +667,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.danger,
     minWidth: 18,
     height: 18,
-    borderRadius: 9,
+    borderRadius: 9999,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 4,

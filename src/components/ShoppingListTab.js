@@ -34,12 +34,12 @@ export default function ShoppingListTab({
 
   return (
     <View style={styles.container}>
-      {/* Input row */}
+      {/* Input row with pill style */}
       <View style={styles.inputContainer}>
         <View style={styles.inputRow}>
           <TextInput
             style={[styles.input, { flex: 2 }]}
-            placeholder="Ajouter un article (ex: Lait d'avoine, Poireaux...)"
+            placeholder="Article (ex: Poireaux, Lait...)"
             placeholderTextColor={COLORS.textMuted}
             value={newItemText}
             onChangeText={setNewItemText}
@@ -62,7 +62,7 @@ export default function ShoppingListTab({
         </View>
       </View>
 
-      {/* Header with stats and clear button */}
+      {/* Header with stats and clear pill button */}
       {shoppingList.length > 0 && (
         <View style={styles.statsBar}>
           <View style={styles.statsRow}>
@@ -72,7 +72,11 @@ export default function ShoppingListTab({
             </Text>
           </View>
           {checkedCount > 0 && (
-            <TouchableOpacity onPress={onClearChecked} activeOpacity={0.7}>
+            <TouchableOpacity
+              style={styles.clearPillBtn}
+              onPress={onClearChecked}
+              activeOpacity={0.7}
+            >
               <Text style={styles.clearText}>Vider cochés</Text>
             </TouchableOpacity>
           )}
@@ -121,7 +125,9 @@ export default function ShoppingListTab({
                   {item.name}
                 </Text>
                 {item.amount ? (
-                  <Text style={styles.itemAmount}>{item.amount}</Text>
+                  <View style={styles.amountPill}>
+                    <Text style={styles.itemAmount}>{item.amount}</Text>
+                  </View>
                 ) : null}
                 {item.recipeTitle && (
                   <Text style={styles.itemRecipe}>
@@ -163,9 +169,9 @@ const styles = StyleSheet.create({
   },
   input: {
     backgroundColor: COLORS.surfaceVariant,
-    paddingHorizontal: 12,
+    paddingHorizontal: 16,
     paddingVertical: 11,
-    borderRadius: 14,
+    borderRadius: 9999,
     fontSize: 14,
     color: COLORS.text,
   },
@@ -173,7 +179,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.primary,
     width: 46,
     height: 46,
-    borderRadius: 14,
+    borderRadius: 9999,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -198,6 +204,12 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: COLORS.primary,
   },
+  clearPillBtn: {
+    backgroundColor: COLORS.dangerLight,
+    paddingVertical: 4,
+    paddingHorizontal: 12,
+    borderRadius: 9999,
+  },
   clearText: {
     fontSize: 12,
     fontWeight: '800',
@@ -213,8 +225,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     backgroundColor: COLORS.surface,
     paddingVertical: 12,
-    paddingHorizontal: 14,
-    borderRadius: 16,
+    paddingHorizontal: 16,
+    borderRadius: 20,
     marginBottom: 10,
     borderWidth: 1,
     borderColor: COLORS.borderLight,
@@ -246,11 +258,18 @@ const styles = StyleSheet.create({
     textDecorationLine: 'line-through',
     color: COLORS.textMuted,
   },
+  amountPill: {
+    alignSelf: 'flex-start',
+    backgroundColor: COLORS.primaryLight,
+    paddingVertical: 2,
+    paddingHorizontal: 8,
+    borderRadius: 9999,
+    marginTop: 4,
+  },
   itemAmount: {
-    fontSize: 12,
+    fontSize: 11,
     color: COLORS.primaryMedium,
     fontWeight: '700',
-    marginTop: 2,
   },
   itemRecipe: {
     fontSize: 11,
@@ -270,7 +289,7 @@ const styles = StyleSheet.create({
   emptyIconBadge: {
     width: 90,
     height: 90,
-    borderRadius: 45,
+    borderRadius: 9999,
     backgroundColor: COLORS.primaryLight,
     justifyContent: 'center',
     alignItems: 'center',

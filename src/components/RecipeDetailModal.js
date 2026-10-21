@@ -41,7 +41,6 @@ export default function RecipeDetailModal({
   const [newRating, setNewRating] = useState(5);
   const [newComment, setNewComment] = useState('');
 
-  // Sync servings when recipe changes
   React.useEffect(() => {
     if (recipe) {
       setServings(recipe.servings || 4);
@@ -64,7 +63,6 @@ export default function RecipeDetailModal({
     const next = Math.max(1, servings + delta);
     setServings(next);
 
-    // Spring animation on portions counter
     Animated.sequence([
       Animated.timing(servingsScale, {
         toValue: 1.35,
@@ -264,7 +262,7 @@ export default function RecipeDetailModal({
               </View>
             </View>
 
-            {/* Quick Timer Launcher Button if cookTime > 0 */}
+            {/* Pill-shaped Quick Timer Launcher Button */}
             {recipe.cookTime > 0 && (
               <TouchableOpacity
                 style={styles.timerLauncherBtn}
@@ -281,7 +279,7 @@ export default function RecipeDetailModal({
               </TouchableOpacity>
             )}
 
-            {/* Servings calculator with animated numbers */}
+            {/* Servings calculator with pill stepper */}
             <View style={styles.servingsRow}>
               <View>
                 <Text style={styles.sectionHeading}>Ingrédients</Text>
@@ -312,7 +310,7 @@ export default function RecipeDetailModal({
               </View>
             </View>
 
-            {/* Add to Shopping List Button */}
+            {/* Pill-shaped Add to Shopping List Button */}
             {recipe.ingredients && recipe.ingredients.length > 0 && (
               <TouchableOpacity
                 style={styles.addToCartBtn}
@@ -442,6 +440,7 @@ export default function RecipeDetailModal({
                 numberOfLines={3}
               />
 
+              {/* Pill-shaped submit rating button */}
               <TouchableOpacity
                 style={styles.submitRatingBtn}
                 onPress={handleSaveReview}
@@ -517,9 +516,9 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   iconCircle: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
+    width: 44,
+    height: 44,
+    borderRadius: 9999,
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
     justifyContent: 'center',
     alignItems: 'center',
@@ -531,8 +530,8 @@ const styles = StyleSheet.create({
   },
   detailsCard: {
     backgroundColor: COLORS.background,
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
     marginTop: -30,
     paddingHorizontal: 20,
     paddingTop: 24,
@@ -545,9 +544,9 @@ const styles = StyleSheet.create({
   },
   categoryPill: {
     backgroundColor: COLORS.primaryLight,
-    paddingVertical: 6,
-    paddingHorizontal: 14,
-    borderRadius: 14,
+    paddingVertical: 7,
+    paddingHorizontal: 16,
+    borderRadius: 9999,
     borderWidth: 1,
     borderColor: COLORS.border,
   },
@@ -563,9 +562,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 5,
     backgroundColor: COLORS.surface,
-    paddingVertical: 5,
-    paddingHorizontal: 10,
-    borderRadius: 12,
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+    borderRadius: 9999,
     borderWidth: 1,
     borderColor: COLORS.borderLight,
   },
@@ -588,7 +587,7 @@ const styles = StyleSheet.create({
   statsCard: {
     flexDirection: 'row',
     backgroundColor: COLORS.surface,
-    borderRadius: 20,
+    borderRadius: 22,
     paddingVertical: 16,
     paddingHorizontal: 14,
     justifyContent: 'space-around',
@@ -626,11 +625,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: COLORS.primary,
-    paddingVertical: 14,
-    borderRadius: 16,
+    paddingVertical: 15,
+    paddingHorizontal: 22,
+    borderRadius: 9999,
     gap: 8,
     marginBottom: 22,
-    elevation: 2,
+    elevation: 3,
     shadowColor: COLORS.primary,
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.25,
@@ -661,7 +661,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: COLORS.surface,
-    borderRadius: 16,
+    borderRadius: 9999,
     borderWidth: 1,
     borderColor: COLORS.border,
     padding: 4,
@@ -669,7 +669,7 @@ const styles = StyleSheet.create({
   stepperBtn: {
     width: 36,
     height: 36,
-    borderRadius: 12,
+    borderRadius: 9999,
     backgroundColor: COLORS.surfaceVariant,
     justifyContent: 'center',
     alignItems: 'center',
@@ -688,8 +688,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: COLORS.primaryLight,
-    paddingVertical: 12,
-    borderRadius: 14,
+    paddingVertical: 13,
+    paddingHorizontal: 20,
+    borderRadius: 9999,
     borderWidth: 1,
     borderColor: COLORS.mint,
     gap: 8,
@@ -702,7 +703,7 @@ const styles = StyleSheet.create({
   },
   ingredientsList: {
     backgroundColor: COLORS.surface,
-    borderRadius: 18,
+    borderRadius: 20,
     padding: 8,
     borderWidth: 1,
     borderColor: COLORS.borderLight,
@@ -732,9 +733,9 @@ const styles = StyleSheet.create({
   },
   ingredientBadge: {
     backgroundColor: COLORS.surfaceVariant,
-    paddingVertical: 4,
-    paddingHorizontal: 10,
-    borderRadius: 10,
+    paddingVertical: 5,
+    paddingHorizontal: 12,
+    borderRadius: 9999,
   },
   ingredientBadgeText: {
     fontSize: 12,
@@ -749,7 +750,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: COLORS.surface,
     padding: 15,
-    borderRadius: 18,
+    borderRadius: 20,
     borderWidth: 1,
     borderColor: COLORS.borderLight,
     gap: 14,
@@ -762,7 +763,7 @@ const styles = StyleSheet.create({
   stepNumberCircle: {
     width: 28,
     height: 28,
-    borderRadius: 14,
+    borderRadius: 9999,
     backgroundColor: COLORS.primaryLight,
     justifyContent: 'center',
     alignItems: 'center',
@@ -789,7 +790,7 @@ const styles = StyleSheet.create({
   },
   notesBox: {
     backgroundColor: '#F3FAF5',
-    borderRadius: 18,
+    borderRadius: 20,
     padding: 16,
     borderWidth: 1,
     borderColor: '#C6E8D2',
@@ -832,7 +833,7 @@ const styles = StyleSheet.create({
   },
   commentInput: {
     backgroundColor: COLORS.surfaceVariant,
-    borderRadius: 14,
+    borderRadius: 16,
     padding: 14,
     fontSize: 14,
     color: COLORS.text,
@@ -848,8 +849,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: COLORS.primary,
     paddingVertical: 14,
-    borderRadius: 14,
+    paddingHorizontal: 22,
+    borderRadius: 9999,
     gap: 8,
+    elevation: 3,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 5,
   },
   submitRatingBtnText: {
     color: COLORS.textLight,
@@ -871,7 +878,7 @@ const styles = StyleSheet.create({
   reviewItem: {
     backgroundColor: COLORS.surfaceVariant,
     padding: 12,
-    borderRadius: 14,
+    borderRadius: 16,
     marginBottom: 10,
   },
   reviewItemHeader: {

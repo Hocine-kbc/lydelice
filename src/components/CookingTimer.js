@@ -32,7 +32,6 @@ export default function CookingTimer({ initialMinutes = 0, onTimerDone }) {
 
   useEffect(() => {
     if (isRunning) {
-      // Start pulsing animation loop
       pulseLoop.current = Animated.loop(
         Animated.sequence([
           Animated.timing(pulseAnim, {
@@ -164,7 +163,7 @@ export default function CookingTimer({ initialMinutes = 0, onTimerDone }) {
           />
         </View>
 
-        {/* Adjust buttons */}
+        {/* Pill Adjust buttons */}
         <View style={styles.adjustRow}>
           <TouchableOpacity
             style={styles.adjustBtn}
@@ -197,7 +196,7 @@ export default function CookingTimer({ initialMinutes = 0, onTimerDone }) {
         </View>
       </Animated.View>
 
-      {/* Main Controls */}
+      {/* Main Pill Controls */}
       <View style={styles.controlsRow}>
         <TouchableOpacity
           style={[styles.mainBtn, isRunning ? styles.pauseBtn : styles.startBtn]}
@@ -224,7 +223,7 @@ export default function CookingTimer({ initialMinutes = 0, onTimerDone }) {
         </TouchableOpacity>
       </View>
 
-      {/* Quick Presets */}
+      {/* Quick Pill Presets */}
       <View style={styles.presetsContainer}>
         <Text style={styles.presetsTitle}>Préréglages culinaires rapides :</Text>
         <View style={styles.presetsRow}>
@@ -264,7 +263,7 @@ export default function CookingTimer({ initialMinutes = 0, onTimerDone }) {
 const styles = StyleSheet.create({
   card: {
     backgroundColor: COLORS.surface,
-    borderRadius: 24,
+    borderRadius: 26,
     padding: 20,
     margin: 16,
     borderWidth: 1,
@@ -282,9 +281,9 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   iconBadge: {
-    width: 38,
-    height: 38,
-    borderRadius: 12,
+    width: 40,
+    height: 40,
+    borderRadius: 9999,
     backgroundColor: COLORS.primary,
     justifyContent: 'center',
     alignItems: 'center',
@@ -305,14 +304,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 5,
     backgroundColor: COLORS.primaryLight,
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    borderRadius: 10,
+    paddingVertical: 5,
+    paddingHorizontal: 12,
+    borderRadius: 9999,
   },
   liveDot: {
     width: 7,
     height: 7,
-    borderRadius: 3.5,
+    borderRadius: 9999,
     backgroundColor: COLORS.mint,
   },
   liveText: {
@@ -323,7 +322,7 @@ const styles = StyleSheet.create({
   },
   timerDisplayContainer: {
     backgroundColor: COLORS.surfaceVariant,
-    borderRadius: 20,
+    borderRadius: 24,
     paddingVertical: 24,
     paddingHorizontal: 16,
     alignItems: 'center',
@@ -350,14 +349,14 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 8,
     backgroundColor: COLORS.border,
-    borderRadius: 4,
+    borderRadius: 9999,
     overflow: 'hidden',
     marginBottom: 16,
   },
   progressBarFill: {
     height: '100%',
     backgroundColor: COLORS.primaryMedium,
-    borderRadius: 4,
+    borderRadius: 9999,
   },
   progressBarFillActive: {
     backgroundColor: COLORS.mint,
@@ -368,9 +367,9 @@ const styles = StyleSheet.create({
   },
   adjustBtn: {
     backgroundColor: COLORS.surface,
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 9999,
     borderWidth: 1,
     borderColor: COLORS.border,
   },
@@ -390,8 +389,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 15,
-    borderRadius: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderRadius: 9999,
     gap: 8,
     elevation: 3,
     shadowColor: COLORS.primary,
@@ -414,9 +414,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 15,
-    paddingHorizontal: 16,
-    borderRadius: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderRadius: 9999,
     borderWidth: 1,
     borderColor: COLORS.border,
     backgroundColor: COLORS.surface,
@@ -445,9 +445,9 @@ const styles = StyleSheet.create({
   },
   presetChip: {
     backgroundColor: COLORS.surfaceVariant,
-    paddingVertical: 7,
-    paddingHorizontal: 12,
-    borderRadius: 14,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 9999,
     borderWidth: 1,
     borderColor: 'transparent',
   },

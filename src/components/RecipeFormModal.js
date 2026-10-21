@@ -139,7 +139,6 @@ export default function RecipeFormModal({
     }
   };
 
-  // Ingredient Handlers
   const addIngredientRow = () => {
     setIngredients([...ingredients, { name: '', amount: '', unit: '' }]);
   };
@@ -158,7 +157,6 @@ export default function RecipeFormModal({
     setIngredients(ingredients.filter((_, i) => i !== index));
   };
 
-  // Steps Handlers
   const addStepRow = () => {
     setSteps([...steps, '']);
   };
@@ -226,7 +224,8 @@ export default function RecipeFormModal({
           <Text style={styles.headerTitle}>
             {isEditing ? 'Modifier la recette' : 'Créer une Recette'}
           </Text>
-          <TouchableOpacity onPress={handleSave} style={styles.saveHeaderBtn}>
+          {/* Pill save button in header */}
+          <TouchableOpacity onPress={handleSave} style={styles.saveHeaderBtn} activeOpacity={0.85}>
             <Text style={styles.saveHeaderBtnText}>Enregistrer</Text>
           </TouchableOpacity>
         </View>
@@ -281,6 +280,7 @@ export default function RecipeFormModal({
                 <Text style={styles.photoPickerSub}>
                   Photographiez votre plat tout juste préparé ou choisissez depuis votre galerie
                 </Text>
+                {/* Pill-shaped photo buttons */}
                 <View style={styles.photoBtnRow}>
                   <TouchableOpacity
                     style={styles.pickButtonPrimary}
@@ -316,7 +316,7 @@ export default function RecipeFormModal({
             />
           </View>
 
-          {/* CATEGORY SELECTOR */}
+          {/* CATEGORY SELECTOR - Pills */}
           <View style={styles.section}>
             <Text style={styles.label}>Catégorie culinaire</Text>
             <View style={styles.chipsRow}>
@@ -384,7 +384,7 @@ export default function RecipeFormModal({
             </View>
           </View>
 
-          {/* DIFFICULTY */}
+          {/* DIFFICULTY - Pill Buttons */}
           <View style={styles.section}>
             <Text style={styles.label}>Niveau de difficulté</Text>
             <View style={styles.diffRow}>
@@ -522,7 +522,7 @@ export default function RecipeFormModal({
             />
           </View>
 
-          {/* SUBMIT BUTTON */}
+          {/* Pill-shaped bottom submit button */}
           <TouchableOpacity
             style={styles.saveBottomBtn}
             onPress={handleSave}
@@ -565,9 +565,9 @@ const styles = StyleSheet.create({
   },
   saveHeaderBtn: {
     backgroundColor: COLORS.primary,
-    paddingVertical: 7,
-    paddingHorizontal: 16,
-    borderRadius: 14,
+    paddingVertical: 8,
+    paddingHorizontal: 18,
+    borderRadius: 9999,
   },
   saveHeaderBtnText: {
     color: COLORS.textLight,
@@ -612,7 +612,7 @@ const styles = StyleSheet.create({
   photoPreviewContainer: {
     width: '100%',
     height: 210,
-    borderRadius: 20,
+    borderRadius: 24,
     overflow: 'hidden',
     position: 'relative',
     borderWidth: 1,
@@ -634,9 +634,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 5,
     backgroundColor: 'rgba(27, 67, 50, 0.9)',
-    paddingVertical: 7,
-    paddingHorizontal: 12,
-    borderRadius: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 9999,
   },
   photoActionDelete: {
     backgroundColor: 'rgba(220, 38, 38, 0.9)',
@@ -651,14 +651,14 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderStyle: 'dashed',
     borderColor: COLORS.mint,
-    borderRadius: 20,
+    borderRadius: 24,
     padding: 22,
     alignItems: 'center',
   },
   cameraIconBadge: {
     width: 60,
     height: 60,
-    borderRadius: 30,
+    borderRadius: 9999,
     backgroundColor: COLORS.primaryLight,
     justifyContent: 'center',
     alignItems: 'center',
@@ -685,9 +685,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: COLORS.primary,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 14,
+    paddingVertical: 11,
+    paddingHorizontal: 18,
+    borderRadius: 9999,
     gap: 6,
     elevation: 2,
   },
@@ -700,9 +700,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: COLORS.primaryLight,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 14,
+    paddingVertical: 11,
+    paddingHorizontal: 18,
+    borderRadius: 9999,
     gap: 6,
     borderWidth: 1,
     borderColor: COLORS.mint,
@@ -723,8 +723,8 @@ const styles = StyleSheet.create({
     gap: 6,
     backgroundColor: COLORS.surface,
     paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 20,
+    paddingHorizontal: 14,
+    borderRadius: 9999,
     borderWidth: 1,
     borderColor: COLORS.border,
   },
@@ -752,7 +752,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.surface,
     borderWidth: 1,
     borderColor: COLORS.border,
-    borderRadius: 12,
+    borderRadius: 14,
     paddingVertical: 10,
     paddingHorizontal: 12,
     textAlign: 'center',
@@ -766,9 +766,9 @@ const styles = StyleSheet.create({
   },
   diffBtn: {
     flex: 1,
-    paddingVertical: 11,
+    paddingVertical: 12,
     alignItems: 'center',
-    borderRadius: 14,
+    borderRadius: 9999,
     borderWidth: 1,
     borderColor: COLORS.border,
     backgroundColor: COLORS.surface,
@@ -784,7 +784,7 @@ const styles = StyleSheet.create({
   },
   ratingBox: {
     backgroundColor: COLORS.surface,
-    borderRadius: 16,
+    borderRadius: 20,
     padding: 16,
     alignItems: 'center',
     borderWidth: 1,
@@ -799,11 +799,15 @@ const styles = StyleSheet.create({
   addRowBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 5,
+    backgroundColor: COLORS.primaryLight,
+    paddingVertical: 5,
+    paddingHorizontal: 12,
+    borderRadius: 9999,
   },
   addRowBtnText: {
-    fontSize: 13,
-    fontWeight: '700',
+    fontSize: 12,
+    fontWeight: '800',
     color: COLORS.primary,
   },
   ingredientRow: {
@@ -821,7 +825,7 @@ const styles = StyleSheet.create({
   stepBadge: {
     width: 28,
     height: 28,
-    borderRadius: 14,
+    borderRadius: 9999,
     backgroundColor: COLORS.primaryLight,
     justifyContent: 'center',
     alignItems: 'center',
@@ -849,7 +853,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 16,
-    borderRadius: 18,
+    paddingHorizontal: 24,
+    borderRadius: 9999,
     gap: 8,
     marginTop: 12,
     elevation: 4,
